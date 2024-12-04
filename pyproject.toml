@@ -1,8 +1,0 @@
-[project]
-requires-python = ">= 3.12"
-dependencies = [
-  "torch",
-  "torchvision",
-  "requests",
-  "tqdm"
-]
