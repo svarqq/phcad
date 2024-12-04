@@ -1,0 +1,28 @@
+import torch
+import torch.nn.functional as F
+
+
+def ssim_loss(model_inputs, model_outputs, **ssim_args):
+    return 1 - (torch.vmap(ssim)(model_inputs, model_outputs, **ssim_args)).mean()
+
+
+def ssim(img1, img2, win_size=11, c1=0.01, c2=0.03, pad=False, **dummy_args):
+    bfac = win_size**2 / (win_size**2 - 1)  # factor for Bessel's correction of variance
+    n_ch = img1.shape[0]
+    window = torch.ones((n_ch, 1, win_size, win_size), requires_grad=True) / win_size**2
+    if pad:
+        img1, img2 = (
+            F.pad(img, (win_size // 2,) * 4, mode="reflect") for img in (img1, img2)
+        )
+
+    m1, m2 = (F.conv2d(img, window, groups=n_ch) for img in (img1, img2))
+    m1sq, m2sq, m12 = m1**2, m2**2, m1 * m2
+    vx, vy = (
+        bfac * (F.conv2d(img**2, window, groups=n_ch) - msq)
+        for img, msq in zip((img1, img2), (m1sq, m2sq))
+    )
+    vxy = bfac * (F.conv2d(img1 * img2, window, groups=n_ch) - m12)
+    ssim = ((2 * m1 * m2 + c1) * (2 * vxy + c2)) / (
+        (m1**2 + m2**2 + c1) * (vx + vy + c2)
+    )
+    return ssim
