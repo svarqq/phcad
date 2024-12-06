@@ -34,13 +34,13 @@ def train(
     else:
         logger.info(f"Training started. Checkpoint path: {savepath}")
         last_epoch = 0
+        checkpoint = {"epoch-loss": []}
 
     if not device and torch.cuda.is_available():
         device = "cuda"
     else:
         device = "cpu"
 
-    checkpoint = {"epoch-loss": []}
     loss_function = loss_function.to(device)
     net.to(device)
     net.train()
