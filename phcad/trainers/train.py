@@ -18,14 +18,22 @@ def train(
     savedir=CHKPTDIR,
     device=None,
 ):
+    if not device and torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+    loss_function = loss_function.to(device)
+    net.to(device)
+    net.train()
+
     savepath = savedir / f"{savename}.pt"
     if savepath.exists():
         checkpoint = torch.load(savepath)
         if len(checkpoint["epoch-loss"]) == epochs:
             logger.info("Training already completed")
             return
-        opt.load_state_dict(checkpoint["opt_state"])
-        net.load_state_dict(checkpoint["model_state"])
+        net.load_state_dict(checkpoint["model_state"], map_location=device)
+        opt.load_state_dict(checkpoint["opt_state"], map_location=device)
         sched = checkpoint["scheduler"]
         last_epoch = checkpoint["epoch-loss"][-1][0]
         logger.info(
@@ -36,14 +44,6 @@ def train(
         last_epoch = 0
         checkpoint = {"epoch-loss": []}
 
-    if not device and torch.cuda.is_available():
-        device = "cuda"
-    else:
-        device = "cpu"
-
-    loss_function = loss_function.to(device)
-    net.to(device)
-    net.train()
     for epoch in range(last_epoch + 1, epochs + 1):
         n_samps, total_loss = 0, 0
         for n_batch, data in enumerate(dloader):
