@@ -28,12 +28,12 @@ def train(
 
     savepath = savedir / f"{savename}.pt"
     if savepath.exists():
-        checkpoint = torch.load(savepath)
+        checkpoint = torch.load(savepath, map_location=device)
         if len(checkpoint["epoch-loss"]) == epochs:
             logger.info("Training already completed")
             return
-        net.load_state_dict(checkpoint["model_state"], map_location=device)
-        opt.load_state_dict(checkpoint["opt_state"], map_location=device)
+        net.load_state_dict(checkpoint["model_state"])
+        opt.load_state_dict(checkpoint["opt_state"])
         sched = checkpoint["scheduler"]
         last_epoch = checkpoint["epoch-loss"][-1][0]
         logger.info(
