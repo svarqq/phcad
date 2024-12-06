@@ -1,6 +1,10 @@
+import logging
+
 import torch
 
 from phcad.trainers.constants import CHKPTDIR
+
+logger = logging.getLogger(__name__)
 
 
 def train(
@@ -14,17 +18,18 @@ def train(
     savedir=CHKPTDIR,
     device=None,
 ):
+    savepath = savedir / f"{savename}.pt"
+    logger.info(f"Training started. Checkpoint path: {savepath}")
     if not device and torch.cuda.is_available():
         device = "cuda"
     else:
         device = "cpu"
 
-    savepath = savedir / f"{savename}.pt"
-    checkpoint = {"epoch-loss": [], "model_state": None, "opt_state": None}
+    checkpoint = {"epoch-loss": []}
     loss_function = loss_function.to(device)
     net.to(device)
     net.train()
-    for epoch in range(epochs):
+    for epoch in range(1, epochs + 1):
         n_samps, total_loss = 0, 0
         for n_batch, data in enumerate(dloader):
             inputs, labels = data
@@ -46,8 +51,11 @@ def train(
         checkpoint["epoch-loss"].append((epoch, epoch_loss))
         checkpoint["model_state"] = net.state_dict()
         checkpoint["opt_state"] = opt.state_dict()
+        checkpoint["scheduler"] = sched
         torch.save(
             checkpoint,
             savepath,
         )
+        logger.info(f"Completed epoch {epoch}")
+        break
     return net
