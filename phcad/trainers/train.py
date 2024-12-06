@@ -57,5 +57,4 @@ def train(
             savepath,
         )
         logger.info(f"Completed epoch {epoch}")
-        break
     return net
