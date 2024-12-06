@@ -264,26 +264,31 @@ def download_and_extract_mvtec(download_directory: Path = MVTEC_DATADIR) -> Path
             req.headers["Content-Disposition"].split("filename=")[1].split(";")[0][1:-1]
         )
     filepath = download_directory / archive_name
-    if filepath.exists() and filepath.stat().st_size == filesize:
+    if (
+        filepath.exists()
+        and filepath.stat().st_size == filesize
+        and extract_directory.exists()
+    ):
         return extract_directory
 
-    if not filepath.parent.exists():
-        print(f"Making directory {filepath.parent}")
-        filepath.parent.mkdir(parents=True)
-    print(f"Downloading MVTec AD archive from {MVTEC_AD_URL} to {filepath}")
-    with requests.get(MVTEC_AD_URL, stream=True) as req:
-        with open(filepath, "wb") as archive:
-            for chunk in (
-                pbar := tqdm(
-                    req.iter_content(chunk_size=8192),
-                    total=filesize,
-                    unit="iB",
-                    unit_scale=True,
-                    unit_divisor=1024,
-                )
-            ):
-                pbar.update(len(chunk))
-                archive.write(chunk)
+    if not (filepath.exists() and filepath.stat().st_size == filesize):
+        if not filepath.parent.exists():
+            print(f"Making directory {filepath.parent}")
+            filepath.parent.mkdir(parents=True)
+        print(f"Downloading MVTec AD archive from {MVTEC_AD_URL} to {filepath}")
+        with requests.get(MVTEC_AD_URL, stream=True) as req:
+            with open(filepath, "wb") as archive:
+                for chunk in (
+                    pbar := tqdm(
+                        req.iter_content(chunk_size=8192),
+                        total=filesize,
+                        unit="iB",
+                        unit_scale=True,
+                        unit_divisor=1024,
+                    )
+                ):
+                    pbar.update(len(chunk))
+                    archive.write(chunk)
 
     print(f"Extracting archive from {filepath} to {extract_directory}")
     with tarfile.open(filepath, "r") as archive:
