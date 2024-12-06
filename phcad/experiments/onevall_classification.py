@@ -3,10 +3,10 @@ import torch
 from phcad.models.ae_mvtec import AEMvTec
 from phcad.data_handling.mvtec_dataset import mvtec_train_cal_dataloaders
 from phcad.trainers.train import train
-from phcad.trainers.losses import ssim_loss
+from phcad.trainers.losses import SSIMLoss
 
 
-def run_onevall_exp_mvtec_ae(device="cuda:0"):
+def run_onevall_exp_mvtec_ae(device=None):
     torch.set_default_dtype(torch.double)
     labels = [
         "bottle",
@@ -27,6 +27,7 @@ def run_onevall_exp_mvtec_ae(device="cuda:0"):
     ]
     resize_px = 276
     crop_px = 256
+    loss_function = SSIMLoss()
 
     for seed in range(1, 6):
         print(f"On seed {seed}")
@@ -43,7 +44,9 @@ def run_onevall_exp_mvtec_ae(device="cuda:0"):
             )
             opt = torch.optim.Adam(ae.parameters())
             sched = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=(20, 40))
-            train(50, ae, ssim_loss, opt, sched, trainloader, savename)
+            train(
+                50, ae, loss_function, opt, sched, trainloader, savename, device=device
+            )
 
             print("Training partial")
             ae = AEMvTec()
@@ -55,4 +58,6 @@ def run_onevall_exp_mvtec_ae(device="cuda:0"):
             )
             opt = torch.optim.Adam(ae.parameters())
             sched = torch.optim.lr_scheduler.MultiStepLR(opt, milestones=(20, 40))
-            train(50, ae, ssim_loss, opt, sched, trainloader, savename)
+            train(
+                50, ae, loss_function, opt, sched, trainloader, savename, device=device
+            )

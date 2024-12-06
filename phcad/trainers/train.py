@@ -12,10 +12,16 @@ def train(
     dloader,
     savename,
     savedir=CHKPTDIR,
-    device="cpu",
+    device=None,
 ):
+    if not device and torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+
     savepath = savedir / f"{savename}.pt"
     checkpoint = {"epoch-loss": [], "model_state": None, "opt_state": None}
+    loss_function = loss_function.to(device)
     net.to(device)
     net.train()
     for epoch in range(epochs):
@@ -33,7 +39,7 @@ def train(
                 opt.step()
 
             n_samps += len(inputs)
-            total_loss += loss.item() * n_samps
+            total_loss += loss.item() * len(inputs)
         sched.step()
 
         epoch_loss = total_loss / n_samps
