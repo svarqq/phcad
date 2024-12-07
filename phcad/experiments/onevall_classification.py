@@ -56,14 +56,22 @@ def calibrate_mvtec_ae(label, device=None):
     _, cal_loader = mvtec_train_cal_dataloaders(
         label, resize_px, crop_px, train_size, cal_size
     )
-    for seed in range(1, 6):
+    for seed in range(2, 6):
         loaddir = CHKPTDIR / f"mvtec-ae-partial-{label}-{seed}.pt"
         logging.info(f"On seed {seed}")
         for nlayers in range(2, 4):
             savename = f"mvtec-ae-cal-{label}-nl{nlayers}-{seed}"
             logging.info(f"Calibrating, holding {nlayers} frozen")
             ae = AEMvTec()
-            ae.load_state_dict(torch.load(loaddir)["model_state"])
+            try:
+                state = torch.load(loaddir)
+            except FileNotFoundError:
+                logging.warn(f"{loaddir} does note exist yet -- needs to be trained!")
+                continue
+            if len(state["epoch-loss"]) != 50:
+                logging.warn(f"{loaddir} not yet completed!")
+                continue
+            ae.load_state_dict(state["model_state"])
             head_layers = ae.setup_cal((crop_px, crop_px), nlayers)
             params = list(
                 itertools.chain.from_iterable(
