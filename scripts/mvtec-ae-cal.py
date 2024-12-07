@@ -25,4 +25,4 @@ if __name__ == "__main__":
     ]
     label = labels[int(sys.argv[1])]
     logging.info(f"Training on label {label}")
-    calibrate_mvtec_ae(label, "cpu")
+    calibrate_mvtec_ae(label)
