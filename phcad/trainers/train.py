@@ -50,6 +50,7 @@ def train(
             inputs, labels = data
             with torch.device(device):
                 inputs = inputs.to(device)
+                labels = labels.to(device)
                 opt.zero_grad()
                 outputs = net(inputs)
                 loss = loss_function(
