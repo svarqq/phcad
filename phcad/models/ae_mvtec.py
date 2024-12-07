@@ -1,11 +1,12 @@
 from collections import OrderedDict
 import tomllib
-from torch import nn
+import torch
 
+from phcad.models.layers import PerPixelPlattScaling
 from phcad.constants import ARCHDIR
 
 
-class AEMvTec(nn.Module):
+class AEMvTec(torch.nn.Module):
     def __init__(self):
         super(AEMvTec, self).__init__()
 
@@ -21,14 +22,14 @@ class AEMvTec(nn.Module):
                 conv_layer["args"]["in_channels"] = input_layer_channels
 
             enc_unit = OrderedDict()
-            conv = nn.Conv2d(**conv_layer["args"])
+            conv = torch.nn.Conv2d(**conv_layer["args"])
             enc_unit.update({"conv": conv})
             if not last_layer:
                 enc_unit.update(
-                    {"bn": nn.BatchNorm2d(conv_layer["args"]["out_channels"])}
+                    {"bn": torch.nn.BatchNorm2d(conv_layer["args"]["out_channels"])}
                 )
-                enc_unit.update({"activ": nn.LeakyReLU(0.2)})
-            encoder.append(nn.Sequential(enc_unit))
+                enc_unit.update({"activ": torch.nn.LeakyReLU(0.2)})
+            encoder.append(torch.nn.Sequential(enc_unit))
 
             # Mirror encoder to construct decoder
             dec_unit = OrderedDict()
@@ -37,19 +38,50 @@ class AEMvTec(nn.Module):
                 tconv_layer["args"]["out_channels"],
                 tconv_layer["args"]["in_channels"],
             )
-            tconv = nn.ConvTranspose2d(**tconv_layer["args"])
+            tconv = torch.nn.ConvTranspose2d(**tconv_layer["args"])
             dec_unit.update({"tconv": tconv})
             if not first_layer:
                 dec_unit.update(
-                    {"bn": nn.BatchNorm2d(tconv_layer["args"]["out_channels"])}
+                    {"bn": torch.nn.BatchNorm2d(tconv_layer["args"]["out_channels"])}
                 )
-                dec_unit.update({"activ": nn.LeakyReLU(0.2)})
-            decoder = [nn.Sequential(dec_unit)] + decoder
-        self.encoder = nn.Sequential(*encoder)
-        self.decoder = nn.Sequential(*decoder)
+                dec_unit.update({"activ": torch.nn.LeakyReLU(0.2)})
+            decoder = [torch.nn.Sequential(dec_unit)] + decoder
+        self.encoder = torch.nn.Sequential(*encoder)
+        self.decoder = torch.nn.Sequential(*decoder)
 
     def forward(self, x):
-        return self.decoder(self.encoder(x))
+        recon = self.decoder(self.encoder(x))
+        if not self.cal:
+            return recon
+        else:
+            recon_across_channels = recon.mean(1)
+            return self.cal(recon_across_channels)
+
+    def setup_cal(self, wh_shape, head_layers_to_reset=0):
+        try:
+            if self.cal:
+                raise RuntimeError("Model already setup for calibration")
+        except AttributeError:
+            pass
+        self.requires_grad_(False)
+
+        head_layers = []
+        for i in range(1, head_layers_to_reset + 1):
+            layer = list(self.decoder.children())[-i]
+            layer.requires_grad_(True)
+
+            def reset(child):
+                try:
+                    child.reset_parameters()
+                except AttributeError:
+                    pass
+
+            layer.apply(reset)
+            head_layers.append(layer)
+
+        self.cal = PerPixelPlattScaling(wh_shape)
+        head_layers.append(self.cal)
+        return head_layers
 
 
 if __name__ == "__main__":

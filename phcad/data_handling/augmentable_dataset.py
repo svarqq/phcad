@@ -60,4 +60,5 @@ class AugmentableDataset(Dataset):
             label = self._labels[0]
         else:
             label = self._labels[base_idx]
-        return transform(self._base_data[base_idx]), label
+        augmented_img = transform(self._base_data[base_idx])
+        return augmented_img, torch.ones(augmented_img.shape[-2:])

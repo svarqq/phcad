@@ -21,6 +21,7 @@ from torch.utils.data import DataLoader
 from phcad.types import AugmentableTransform
 from phcad.data_handling.constants import DATADIR
 from phcad.data_handling.augmentable_dataset import AugmentableDataset
+from phcad.data_handling.noise_data import UniformNoiseImages
 
 
 MVTEC_DATADIR = DATADIR / "mvtec-ad"
@@ -58,7 +59,9 @@ def mvtec_train_cal_dataloaders(
 
     if cal_size:
         cal_data = data[split_idx:]
-        cal_dset = AugmentableDataset(label, cal_data, cal_size, transform)
+        cal_pos = AugmentableDataset(label, cal_data, cal_size, transform)
+        cal_neg = UniformNoiseImages(len(cal_pos), (3, crop_px, crop_px), mean, std)
+        cal_dset = torch.utils.data.ConcatDataset([cal_pos, cal_neg])
         cal_loader = DataLoader(cal_dset, batch_size=128, shuffle=True)
     else:
         cal_loader = None
