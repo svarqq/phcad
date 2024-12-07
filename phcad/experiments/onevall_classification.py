@@ -56,17 +56,17 @@ def calibrate_mvtec_ae(label, device=None):
     _, cal_loader = mvtec_train_cal_dataloaders(
         label, resize_px, crop_px, train_size, cal_size
     )
-    for seed in range(2, 6):
+    for seed in range(1, 6):
         loaddir = CHKPTDIR / f"mvtec-ae-partial-{label}-{seed}.pt"
         logging.info(f"On seed {seed}")
-        for nlayers in range(2, 4):
+        for nlayers in range(1, 4):
             savename = f"mvtec-ae-cal-{label}-nl{nlayers}-{seed}"
             logging.info(f"Calibrating, holding {nlayers} frozen")
             ae = AEMvTec()
             try:
                 state = torch.load(loaddir)
             except FileNotFoundError:
-                logging.warn(f"{loaddir} does note exist yet -- needs to be trained!")
+                logging.warn(f"{loaddir} does not exist yet -- needs to be trained!")
                 continue
             if len(state["epoch-loss"]) != 50:
                 logging.warn(f"{loaddir} not yet completed!")
