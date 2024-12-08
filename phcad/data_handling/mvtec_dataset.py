@@ -39,7 +39,7 @@ def mvtec_train_cal_dataloaders(
     train_size: int,
     cal_size: int,
 ):
-    dpath, _, _ = generate_data(resize_px)
+    dpath, _, _ = generate_data(resize_px, crop_px)
     data = torch.load(dpath)[label]
     mean, std = (
         data.to(torch.get_default_dtype()).mean((0, 2, 3)),
@@ -49,7 +49,7 @@ def mvtec_train_cal_dataloaders(
         mvtec_transform,
         mean,
         std,
-        data.shape[-2:],
+        data.shape[-3:],
         crop_px,
     )
     split_idx = (train_size * len(data)) // (train_size + cal_size)
@@ -72,16 +72,18 @@ def mvtec_train_cal_dataloaders(
 def mvtec_transform(
     base_mean: tuple,
     base_std: tuple,
-    shape_h_w: tuple | None = None,
+    shape_chw: tuple | None = None,
     crop_px: int | None = None,
     base: bool = True,
 ) -> AugmentableTransform:
     # For base preprocessing
     norm = transforms.Normalize(base_mean, base_std)
     transform_list = []
+    if shape_chw[0] == 3:
+        transform_list.append(transforms.Grayscale())
     if base:
         if crop_px:
-            h, w = shape_h_w
+            _, h, w = shape_chw
             crop = transforms.Lambda(
                 lambda x: transforms.functional.crop(
                     x,
@@ -92,7 +94,7 @@ def mvtec_transform(
                 )
             )
             transform_list.append(crop)
-        transform_list.append(transforms.ToDtype(torch.double))
+        transform_list.append(transforms.ToDtype(torch.get_default_dtype()))
         transform_list.append(norm)
         return transforms.Compose(transform_list)
 
@@ -106,7 +108,6 @@ def mvtec_transform(
             transforms.Lambda(lambda x: x.clamp(0, 255)),
         ]
     )
-    random_rotation = transforms.RandomRotation(180, fill=tuple(base_mean))
 
     jitter_choices = [
         transforms.ColorJitter(*[0.04 for _ in range(4)]),
@@ -115,7 +116,6 @@ def mvtec_transform(
     jitter_transform = random.choice(jitter_choices)
     transform_list.append(jitter_transform)
     transform_list.append(transforms.ToDtype(torch.double))
-    transform_list.append(random_rotation)
     if crop_px:
         random_crop = transforms.RandomCrop(crop_px)
         transform_list.append(random_crop)
@@ -135,12 +135,14 @@ def unnormalize(img, mean, std):
     return unnorm(img)
 
 
-def generate_data(resize_px: int, dataset_directory: Path = MVTEC_DATADIR):
+def generate_data(
+    resize_px_train: int, resize_px_test: int, dataset_directory: Path = MVTEC_DATADIR
+):
     trainpath, testpath, pxlabels_path = (
         dataset_directory / filename
         for filename in (
-            f"train-{resize_px}px.pt",
-            f"test-{resize_px}px.pt",
+            f"train-{resize_px_train}px.pt",
+            f"test-{resize_px_test}px.pt",
             "pxlabels.pt",
         )
     )
@@ -185,7 +187,9 @@ def generate_data(resize_px: int, dataset_directory: Path = MVTEC_DATADIR):
             if label not in train_data:
                 train_data[label] = []
             train_data[label] += list(
-                map(lambda img: transforms.functional.resize(img, resize_px), imgs)
+                map(
+                    lambda img: transforms.functional.resize(img, resize_px_train), imgs
+                )
             )
             continue
 
@@ -200,7 +204,7 @@ def generate_data(resize_px: int, dataset_directory: Path = MVTEC_DATADIR):
             if label not in test_data:
                 test_data[label] = {}
             test_imgs = list(
-                map(lambda img: transforms.functional.resize(img, resize_px), imgs)
+                map(lambda img: transforms.functional.resize(img, resize_px_test), imgs)
             )
             test_data[label][defect_type] = test_imgs
 

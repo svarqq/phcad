@@ -51,11 +51,14 @@ class AEMvTec(torch.nn.Module):
 
     def forward(self, x):
         recon = self.decoder(self.encoder(x))
-        if not self.cal:
+        try:
+            if not self.cal:
+                return recon
+            else:
+                recon_across_channels = recon.mean(1)
+                return self.cal(recon_across_channels)
+        except AttributeError:
             return recon
-        else:
-            recon_across_channels = recon.mean(1)
-            return self.cal(recon_across_channels)
 
     def setup_cal(self, wh_shape, head_layers_to_reset=0):
         try:
