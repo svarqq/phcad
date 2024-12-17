@@ -39,7 +39,7 @@ class FCDDMvTec(torch.nn.Module):
             (
                 ("vgg11_bn_base", vgg11_base),
                 ("final_conv"),
-                Conv2D(512, 1, 1)(
+                torch.nn.Conv2D(512, 1, 1)(
                     "receptive_upsample",
                     ReceptiveUpsample(ksizes, strides, paddings),
                 ),

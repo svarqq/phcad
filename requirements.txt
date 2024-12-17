@@ -1,4 +1,6 @@
+ffcount
 torch
 torchvision
 requests
+scipy	# for torchvision.daatasets.imagenet parse_devkit_archive
 tqdm

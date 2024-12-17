@@ -32,6 +32,11 @@ MVTEC_AD_URL = (
 )
 
 
+def MVTec_AD(VisionDataset):
+    # TODO: Basically everything haha
+    pass
+
+
 def mvtec_train_cal_dataloaders(
     label: str,
     resize_px: int,

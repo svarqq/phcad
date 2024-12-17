@@ -9,3 +9,12 @@ class PerPixelPlattScaling(torch.nn.Module):
 
     def forward(self, logits):
         return torch.einsum("ijk, jk -> ijk", logits, 1 / self.temperature) + self.bias
+
+
+class LinearActivation(torch.nn.Module):
+    # Placeholder for ATS, little more than dummy wummy
+    def __init__(self):
+        super(LinearActivation, self).__init__()
+
+    def forward(self, x):
+        return x
