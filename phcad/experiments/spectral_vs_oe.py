@@ -36,7 +36,6 @@ def run_spectral_vs_oe(dataset_name, label, device=None):
 
     train_data = get_dataset(dataset_name, "train", label)
     mean, std = mean_std(train_data)
-    print(mean, std)
     transform = TRAIN_TRANSFORM_MAP[dataset_name](mean, std)
     train_data.dataset.transform = transform
     train_data.dataset.target_transform = indist_target_transform
@@ -103,5 +102,3 @@ def run_spectral_vs_oe(dataset_name, label, device=None):
             savedir=model_dir,
         )
         evaluate_thresholding(model, test_loader, anomaly_score_function, results_path)
-
-    print(len(test_data))
