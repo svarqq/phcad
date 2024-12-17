@@ -1,8 +1,4 @@
-import torch
-import torchvision.transforms.v2.functional as F
-from torch.nn.functional import binary_cross_entropy_with_logits
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
 
 from phcad.experiments.constants import EXPDIR
 from phcad.models.constants import MODEL_MAP
