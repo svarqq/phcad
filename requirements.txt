@@ -1,4 +1,5 @@
 ffcount
+scikit-learn
 torch
 torchvision
 requests
