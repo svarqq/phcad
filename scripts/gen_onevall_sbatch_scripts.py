@@ -59,7 +59,7 @@ conda activate ml
 
     oe_train = "spec" if spectral_oe_train else "oe"
     oe_cal = "spec" if spectral_oe_cal else "oe"
-    job_name = sbatch_dir / f"{loss_name}-{oe_train}-{oe_cal}"
+    job_name = f"{loss_name}-{oe_train}-{oe_cal}"
 
     if test_one_label:
         log_path = logdir / f"{job_name}_%j.log"
