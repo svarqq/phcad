@@ -92,7 +92,8 @@ conda activate ml
     dynamic_cmd_line = f"python {onevall_script_path} {cmd_args}\n"
 
     sbatch_script = prefix + dynamic_sbatch_args + infix + dynamic_cmd_line + postfix
-    sbatch_savepath = sbatch_dir / f"{job_name}.sbatch"
+    postfix = "test-one" if test_one_label else "all"
+    sbatch_savepath = sbatch_dir / f"{job_name-postfix}.sbatch"
     with open(sbatch_savepath, "w") as f:
         f.write(sbatch_script)
     return sbatch_savepath
