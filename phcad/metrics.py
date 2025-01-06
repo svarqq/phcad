@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 
-def ssim(img1, img2, win_size=11, c1=0.01, c2=0.03, pad=True):
+def ssim(img1, img2, win_size=11, c1=0.01, c2=0.03, pad=True, **kwargs):
     bfac = win_size**2 / (win_size**2 - 1)  # factor for Bessel's correction of variance
     n_ch = img1.shape[0]
     window = torch.ones((n_ch, 1, win_size, win_size), requires_grad=True) / win_size**2
