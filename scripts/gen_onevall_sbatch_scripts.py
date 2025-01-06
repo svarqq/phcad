@@ -34,20 +34,20 @@ def generate_sbatch(
     test_one_label=False,
 ):
     prefix = """#!/usr/bin/env bash
-    #SBATCH --mail-type=ALL
-    #SBATCH -t 1-0  # 1 day
-    #SBATCH --mem=4G
-    #SBATCH -N 1
-    #SBATCH -n 5
-    #SBATCH --cpus-per-task=1
-    #SBATCH --gres gpu:V100:1
-    #SBATCH --partition gpuidle
-    """
+#SBATCH --mail-type=ALL
+#SBATCH -t 1-0  # 1 day
+#SBATCH --mem=4G
+#SBATCH -N 1
+#SBATCH -n 5
+#SBATCH --cpus-per-task=1
+#SBATCH --gres gpu:V100:1
+#SBATCH --partition gpuidle
+"""
     infix = """module load anaconda3/latest
-    . $ANACONDA_HOME/etc/profile.d/conda.sh
+. $ANACONDA_HOME/etc/profile.d/conda.sh
 
-    conda activate ml
-    """
+conda activate ml
+"""
     postfix = "conda deactivate"
 
     sbatch_dir = slurm_subdir / dataset_name
