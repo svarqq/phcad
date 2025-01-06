@@ -2,7 +2,7 @@ from collections import OrderedDict
 import tomllib
 import torch
 
-from phcad.models.layers import PerPixelPlattScaling
+from phcad.models.layers import PerPixelPlattCal
 from phcad.constants import ARCHDIR
 
 
@@ -82,7 +82,7 @@ class AEMvTec(torch.nn.Module):
             layer.apply(reset)
             head_layers.append(layer)
 
-        self.cal = PerPixelPlattScaling(wh_shape)
+        self.cal = PerPixelPlattCal(wh_shape)
         head_layers.append(self.cal)
         return head_layers
 

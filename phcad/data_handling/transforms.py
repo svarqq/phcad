@@ -1,12 +1,8 @@
 import torch
 import torchvision.transforms.v2 as v2
 
-indist_target_transform = v2.Lambda(
-    lambda x: torch.tensor(0, dtype=torch.get_default_dtype())
-)
-anom_target_transform = v2.Lambda(
-    lambda x: torch.tensor(1, dtype=torch.get_default_dtype())
-)
+label_to_zero = v2.Lambda(lambda x: torch.tensor(0, dtype=torch.get_default_dtype()))
+label_to_one = v2.Lambda(lambda x: torch.tensor(1, dtype=torch.get_default_dtype()))
 
 
 def get_cifar_train_transform(mean, std, ae=False):
@@ -67,4 +63,9 @@ def unnorm(im, mean, std):
 TRAIN_TRANSFORM_MAP = {
     "cifar10": get_cifar_train_transform,
     "fmnist": get_fmnist_train_transform,
+}
+
+TEST_TRANSFORM_MAP = {
+    "cifar10": generic_norm_transform,
+    "fmnist": generic_norm_transform,
 }

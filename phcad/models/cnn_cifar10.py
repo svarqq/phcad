@@ -8,7 +8,6 @@ from phcad.models.utils import construct_decoder
 
 class CNN_CIFAR10(nn.Module):
     def __init__(self, bias=True, clf=False, ae=False):
-        super().__init__()
         super(CNN_CIFAR10, self).__init__()
         self.clf = clf
         self.ae = ae
@@ -81,10 +80,8 @@ class CNN_CIFAR10(nn.Module):
     def prepare_calibration_network(self):
         # Bias can be set to false to accommodate DSVDD, but in post-hoc calibration
         # it can be turned back on
-        if self.clf or self.phcal:
-            raise Exception(
-                "Network already set up for calibration, only Platt scaling possible"
-            )
+        if self.phcal:
+            raise Exception("Network already set up for post-hoc calibration")
 
         calibration_head = OrderedDict()
         if not self.clf and not self.ae:
@@ -114,19 +111,14 @@ class CNN_CIFAR10(nn.Module):
                 nn.Flatten(), nn.BatchNorm1d(100, eps=self.eps), nn.LeakyReLU()
             )
             calibration_head["fc1"] = nn.Sequential(
-                nn.Linear(100, 50),
-                nn.BatchNorm1d(50, eps=self.eps),
-                nn.LeakyReLU(),
-            )
-            calibration_head["fc2"] = nn.Sequential(
-                nn.Linear(50, 20),
-                nn.BatchNorm1d(20, eps=self.eps),
-                nn.LeakyReLU(),
-            )
-            calibration_head["fc3"] = nn.Sequential(
-                nn.Linear(20, 1), nn.Flatten(0, 1), LinearActivation()
+                nn.Linear(100, 1), nn.Flatten(0, 1), LinearActivation()
             )
             self.ae = False
+
+        elif self.clf:
+            base_layers = OrderedDict(self.layers.named_children())
+            calibration_head.update((base_layers.popitem(),))
+            base_layers = nn.Sequential(OrderedDict(base_layers))
 
         layers = nn.Sequential(
             OrderedDict(

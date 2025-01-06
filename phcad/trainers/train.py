@@ -23,7 +23,7 @@ def train(
 
     savepath = savedir / f"{savename}.pt"
     if savepath.exists():
-        checkpoint = torch.load(savepath, map_location="cpu")
+        checkpoint = torch.load(savepath, map_location="cpu", weights_only=False)
         net.load_state_dict(checkpoint["model_state"])
         if len(checkpoint["epoch-loss"]) == epochs:
             logger.info(

@@ -1,14 +1,52 @@
 import torch
 
 
-class PerPixelPlattScaling(torch.nn.Module):
+class PlattCal(torch.nn.Module):
+    def __init__(self):
+        super(PlattCal, self).__init__()
+        self.temperature = torch.nn.Parameter(torch.empty(1))
+        self.bias = torch.nn.Parameter(torch.empty(1))
+        torch.nn.init.normal_(self.temperature, mean=1, std=0.1)
+        torch.nn.init.normal_(self.bias, mean=0, std=0.1)
+
+    def forward(self, logits):
+        return logits / self.temperature + self.bias
+
+
+class PerPixelPlattCal(torch.nn.Module):
     def __init__(self, wh_shape):
-        super(PerPixelPlattScaling, self).__init__()
+        super(PerPixelPlattCal, self).__init__()
         self.temperature = torch.nn.Parameter(torch.ones(wh_shape))
         self.bias = torch.nn.Parameter(torch.zeros(wh_shape))
+        torch.nn.init.normal_(self.temperature, mead=1, std=0.1)
+        torch.nn.init.normal_(self.bias, mean=0, std=0.1)
 
     def forward(self, logits):
         return torch.einsum("ijk, jk -> ijk", logits, 1 / self.temperature) + self.bias
+
+
+class BetaCal(torch.nn.Module):
+    eps = 1e-4
+
+    def __init__(self):
+        super(BetaCal, self).__init__()
+        self.a = torch.nn.Parameter(torch.empty(1))
+        self.b = torch.nn.Parameter(torch.empty(1))
+        self.c = torch.nn.Parameter(torch.empty(1))
+        torch.nn.init.normal_(self.a, mean=1, std=0.1)
+        torch.nn.init.normal_(self.b, mean=1, std=0.1)
+        torch.nn.init.normal_(self.c, mean=0, std=0.1)
+
+    def forward(self, prob_estimates):
+        a, b = torch.clamp(self.a, 0), torch.clamp(self.b, 0)
+        prob_estimates = torch.clamp(prob_estimates, BetaCal.eps, 1 - BetaCal.eps)
+        if self.training:
+            s1 = torch.log(prob_estimates)
+            s2 = -torch.log(1 - prob_estimates)
+            return a * s1 + b * s2 + self.c
+        else:
+            prob_fraction = prob_estimates**a / (1 - prob_estimates) ** b
+            return 1 / (1 + (1 / (torch.exp(self.c) * prob_fraction)))
 
 
 class LinearActivation(torch.nn.Module):

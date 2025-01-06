@@ -90,4 +90,38 @@ IMAGENET30_LABEL_MAP["tank"] = (
     "armoured combat vehicle",
 )
 
+MVTEC_DL_URL = (
+    "https://www.mydrive.ch/"
+    "shares/38536/3830184030e49fe74747669442f0f282/download/"
+    "420938113-1629952094/mvtec_anomaly_detection.tar.xz"
+)
+MVTEC_LABELS = [
+    "bottle",
+    "cable",
+    "capsule",
+    "carpet",
+    "grid",
+    "hazelnut",
+    "leather",
+    "metal_nut",
+    "pill",
+    "screw",
+    "tile",
+    "toothbrush",
+    "transistor",
+    "wood",
+    "zipper",
+]
+MVTEC_LABEL_MAP = {lab: lab for lab in MVTEC_LABELS}
+
+MPDD_LABELS = [
+    "bracket_black",
+    "bracket_brown",
+    "bracket_white",
+    "connector",
+    "metal_plate",
+    "tubes",
+]
+MPDD_LABEL_MAP = {lab: lab for lab in MPDD_LABELS}
+
 OE_DATASET_MAP = {"cifar10": "cifar100", "fmnist": "cifar100"}

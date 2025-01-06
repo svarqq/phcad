@@ -1,6 +1,11 @@
+import random
+import json
+import logging
+from functools import partial
+
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader, Subset, ConcatDataset
 from torchvision.datasets import CIFAR10, CIFAR100, FashionMNIST
 import torchvision.transforms.v2.functional as F
 
@@ -9,15 +14,86 @@ from phcad.data_handling.constants import (
     FMNIST_LABEL_MAP,
     CIFAR10_LABEL_MAP,
     IMAGENET30_LABEL_MAP,
+    MVTEC_LABEL_MAP,
+    MPDD_LABEL_MAP,
 )
 from phcad.data_handling.imagenet import ImageNet30
+from phcad.data_handling.mvtec_mpdd import MVTecMPDD
+
+
+MVTec = partial(MVTecMPDD, "mvtec")
+MPDD = partial(MVTecMPDD, "mpdd")
+
 
 DATASET_MAP = {
     "fmnist": (FashionMNIST, FMNIST_LABEL_MAP, "classification"),
     "cifar10": (CIFAR10, CIFAR10_LABEL_MAP, "classification"),
     "cifar100": (CIFAR100, None, "classification"),
     "imagenet30": (ImageNet30, IMAGENET30_LABEL_MAP, "classification"),
+    "mvtec": (MVTec, MVTEC_LABEL_MAP, "segmentation"),
+    "mpdd": (MPDD, MPDD_LABEL_MAP, "segmentation"),
 }
+
+logger = logging.getLogger(__name__)
+
+
+def get_train_cal_splits(dataset, idcs_savepath=None, datadir=DATADIR):
+    train_data, cal_data = None, None
+
+    if idcs_savepath and idcs_savepath.exists():
+        logger.info(f"Loading train-cal split indices from {idcs_savepath}")
+        with open(idcs_savepath, "r") as f:
+            idcs = json.loads(f.read())
+
+        train_data, cal_data = None, None
+        if isinstance(dataset, Subset):
+            train_idcs, cal_idcs = idcs["train"], idcs["cal"]
+            train_data = Subset(dataset.dataset, train_idcs)
+            cal_data = Subset(dataset.dataset, cal_idcs)
+        elif isinstance(dataset, ConcatDataset):
+            train, cal = [], []
+            for i, ds in enumerate(dataset.datasets):
+                train_idcs, cal_idcs = idcs[f"train-{i}"], idcs[f"cal-{i}"]
+                train_subs = Subset(ds.dataset, train_idcs)
+                cal_subs = Subset(ds.dataset, cal_idcs)
+                train.append(train_subs)
+                cal.append(cal_subs)
+            train_data = ConcatDataset(train)
+            cal_data = ConcatDataset(cal)
+
+    else:
+        # 3:1 split
+        split_idcs = {}
+        if isinstance(dataset, Subset):
+            num_train = (len(dataset) * 3) // 4
+            indices = dataset.indices
+            train_idcs = random.sample(indices, num_train)
+            cal_idcs = list(set(indices) - set(train_idcs))
+            train_data = Subset(dataset.dataset, train_idcs)
+            cal_data = Subset(dataset.dataset, cal_idcs)
+            split_idcs = {"train": train_idcs, "cal": cal_idcs}
+        elif isinstance(dataset, ConcatDataset):
+            train, cal = [], []
+            for i, ds in enumerate(dataset.datasets):
+                num_train = (len(ds) * 3) // 4
+                indices = ds.indices
+                train_idcs = random.sample(indices, num_train)
+                cal_idcs = list(set(indices) - set(train_idcs))
+                train_subs = Subset(ds.dataset, train_idcs)
+                cal_subs = Subset(ds.dataset, cal_idcs)
+
+                train.append(train_subs)
+                cal.append(cal_subs)
+                split_idcs[f"train-{i}"] = train_idcs
+                split_idcs[f"cal-{i}"] = cal_idcs
+            train_data = ConcatDataset(train)
+            cal_data = ConcatDataset(cal)
+
+        if idcs_savepath and not idcs_savepath.exists():
+            with open(idcs_savepath, "w") as f:
+                f.write(json.dumps(split_idcs))
+
+    return train_data, cal_data
 
 
 def get_dataset(
@@ -70,7 +146,7 @@ def get_dataset(
     if dataset_type == "classification":
         labels = np.asarray(full_data.targets)
     elif dataset_type == "segmentation":
-        labels = np.asarray(full_data.label_list)
+        labels = np.asarray(full_data.class_list)
     if not complement:
         label_idcs = (
             np.argwhere(labels == full_data.class_to_idx[label_map[label]])
@@ -160,7 +236,7 @@ class BalancedLoader:
 def mean_std(dataset: Subset):
     tmp_transform = dataset.dataset.transform
     dataset.dataset.transform = None
-    data = torch.stack(
+    imgs = torch.stack(
         [
             F.to_dtype(
                 F.to_image(dataset[i][0]), dtype=torch.get_default_dtype(), scale=True
@@ -170,12 +246,12 @@ def mean_std(dataset: Subset):
     )
     dataset.dataset.transform = tmp_transform
 
-    data = data.to(torch.get_default_dtype())
-    num_channels = data.shape[1]
+    imgs = imgs.to(torch.get_default_dtype())
+    num_channels = imgs.shape[1]
     if num_channels == 1:
-        return (data.mean(),), (data.std(),)
+        return (imgs.mean(),), (imgs.std(),)
     elif num_channels == 3:
-        return data.mean((0, 2, 3)), data.std((0, 2, 3))
+        return imgs.mean((0, 2, 3)), imgs.std((0, 2, 3))
     else:
         raise ValueError(
             f"Inputs must have 1 or 3 channels, got channels={num_channels}"
