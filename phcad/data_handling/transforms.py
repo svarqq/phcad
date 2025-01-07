@@ -63,7 +63,7 @@ def get_default_train_transform(
         v2.Lambda(lambda x: x + 0.001 * torch.randn_like(x)),
         v2.Normalize(mean, std),
     ]
-    return transforms
+    return v2.Compose(transforms)
 
 
 def get_default_test_transform(

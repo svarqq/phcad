@@ -37,7 +37,6 @@ class MVTecMPDD(VisionDataset):
             root, transform=transform, target_transform=target_transform
         )
         self.train = train
-        self.extend = False
 
         if dataset_name == "mvtec":
             extract_path = download_and_extract_mvtec(root)
@@ -53,10 +52,7 @@ class MVTecMPDD(VisionDataset):
             self.class_list = meta["test_classes"]
 
     def __len__(self):
-        if not self.extend:
-            return len(self.data)
-        else:
-            return MVTecMPDD.extension_factor * len(self.data)
+        return MVTecMPDD.extension_factor * len(self.data)
 
     def __getitem__(self, idx):
         idx %= len(self.data)

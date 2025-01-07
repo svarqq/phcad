@@ -10,6 +10,7 @@ class WideResNet18(nn.Module):
         super().__init__()
         self.inplanes = 64
         self.clf = clf
+        self.phcal = False
 
         self.rep_dim = rep_dim
         att_type = "CBAM"
@@ -102,8 +103,22 @@ class WideResNet18(nn.Module):
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
-        x = self.linear(x) if self.clf else x
+        x = self.linear(x).view(-1) if self.clf else x
         return x
+
+    def prepare_calibration_network(self):
+        if self.phcal:
+            raise Exception("Network already set up for post-hoc calibration")
+
+        if not self.clf:
+            self.linear = nn.Linear(self.rep_dim, 1)
+        self.calibration_head = self.linear
+        self.requires_grad_(False)
+        self.calibration_head.requires_grad_(True)
+        if self.clf:
+            self.calibration_head.reset_parameters()
+        self.clf = True
+        self.phcad = True
 
 
 class BasicBlock(nn.Module):

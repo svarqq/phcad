@@ -51,7 +51,7 @@ def run_onevall(
         )
 
     transform_and_model_identifier = dataset_name
-    if dataset_name != "fmnist" and dataset_name != "cifar10":
+    if dataset_name != "fmnist" and dataset_name != "cifar10" and loss_name == "ssim":
         transform_and_model_identifier += "-ae"
 
     if loss_name == "ssim":
@@ -87,9 +87,6 @@ def run_onevall(
         base_model_args["bias"] = False
 
     # Set up data
-    transform_and_model_identifier = dataset_name
-    if dataset_name != "fmnist" and dataset_name != "cifar10":
-        transform_and_model_identifier += "-ae"
     train_full = get_dataset(dataset_name, "train", label)
     mean_full, std_full = mean_std(train_full, ae=loss_name == "ssim")
     flip = True
@@ -290,7 +287,10 @@ def run_onevall(
         loss_phtrain = LOSS_MAP["bce"]
 
         opt, sched, epochs = get_optim_sched_epochs(dataset_name)
-        opt = opt(model_phtrain.layers.calibration_head.parameters())
+        try:
+            opt = opt(model_phtrain.layers.calibration_head.parameters())
+        except AttributeError:
+            opt = opt(model_phtrain.calibration_head.parameters())  # WRN18 hack
         sched = sched(opt)
 
         epochs = 1
