@@ -1,5 +1,7 @@
 import torch
 
+import torch.nn.functional as F
+
 
 class PlattCal(torch.nn.Module):
     def __init__(self):
@@ -26,7 +28,7 @@ class PerPixelPlattCal(torch.nn.Module):
 
 
 class BetaCal(torch.nn.Module):
-    eps = 1e-4
+    eps = 1e-10
 
     def __init__(self):
         super(BetaCal, self).__init__()
@@ -40,13 +42,10 @@ class BetaCal(torch.nn.Module):
     def forward(self, prob_estimates):
         a, b = torch.clamp(self.a, 0), torch.clamp(self.b, 0)
         prob_estimates = torch.clamp(prob_estimates, BetaCal.eps, 1 - BetaCal.eps)
-        if self.training:
-            s1 = torch.log(prob_estimates)
-            s2 = -torch.log(1 - prob_estimates)
-            return a * s1 + b * s2 + self.c
-        else:
-            prob_fraction = prob_estimates**a / (1 - prob_estimates) ** b
-            return 1 / (1 + (1 / (torch.exp(self.c) * prob_fraction)))
+        s1 = torch.log(prob_estimates)
+        s2 = -torch.log(1 - prob_estimates)
+        logits = a * s1 + b * s2 + self.c
+        return logits
 
 
 class LinearActivation(torch.nn.Module):

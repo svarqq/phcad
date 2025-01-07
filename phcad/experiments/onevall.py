@@ -342,7 +342,7 @@ def run_onevall(
         modules_phcal = [model_partial, loss_partial]
 
         # Calibrate - Platt
-        platt_pre = f"{partial_pre}-platt-{oe_cal_type}.json"
+        platt_pre = f"{partial_pre}-platt-{oe_cal_type}"
         pm = apply_posthoc_calibration(
             "platt",
             inputs_to_logits_fn,
@@ -351,7 +351,7 @@ def run_onevall(
             modules_in_fn=modules_phcal,
         )
         # Test - normal
-        results_path = results_dir / f"{partial_pre}-platt-{oe_cal_type}.json"
+        results_path = results_dir / f"{platt_pre}.json"
         inputs_to_anomaly_score_platt = lambda inputs: F.sigmoid(
             pm(inputs_to_logits_fn(inputs))
         )
@@ -361,7 +361,7 @@ def run_onevall(
         )
 
         # Test - with input perturbation
-        results_path = results_dir / f"{partial_pre}-platt-{oe_cal_type}-perturb.json"
+        results_path = results_dir / f"{platt_pre}-perturb.json"
         inputs_to_loss_platt = (
             lambda inputs, labels: F.binary_cross_entropy_with_logits(
                 pm(inputs_to_logits_fn(inputs)), labels
@@ -377,7 +377,7 @@ def run_onevall(
         )
 
         # Calibrate - Beta
-        beta_pre = f"{partial_pre}-beta-{oe_cal_type}.json"
+        beta_pre = f"{partial_pre}-beta-{oe_cal_type}"
         bm = apply_posthoc_calibration(
             "beta",
             inputs_to_pests_fn,
@@ -386,17 +386,19 @@ def run_onevall(
             modules_in_fn=modules_phcal,
         )
         # Test - normal
-        results_path = results_dir / f"{partial_pre}-beta-{oe_cal_type}.json"
-        inputs_to_anomaly_score_beta = lambda inputs: bm(inputs_to_pests_fn(inputs))
+        results_path = results_dir / f"{beta_pre}.json"
+        inputs_to_anomaly_score_beta = lambda inputs: F.sigmoid(
+            bm(inputs_to_pests_fn(inputs))
+        )
         modules_beta = modules_phcal + [bm]
         evaluate_thresholding(
             inputs_to_anomaly_score_beta, test_loader_ph, modules_beta, results_path
         )
 
         # Test - with input perturbation
-        results_path = results_dir / f"{partial_pre}-beta-{oe_cal_type}-perturb.json"
-        inputs_to_loss_beta = lambda inputs, labels: F.binary_cross_entropy(
-            inputs_to_anomaly_score_beta(inputs), labels
+        results_path = results_dir / f"{beta_pre}-perturb.json"
+        inputs_to_loss_beta = lambda inputs, labels: F.binary_cross_entropy_with_logits(
+            bm(inputs_to_pests_fn(inputs)), labels
         )
         evaluate_thresholding_perturbation(
             inputs_to_anomaly_score_beta,

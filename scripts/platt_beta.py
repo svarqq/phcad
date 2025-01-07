@@ -72,7 +72,7 @@ if __name__ == "__main__":
             y,
         )
     )
-    print(F.binary_cross_entropy(bm(p), y))
+    print(F.binary_cross_entropy_with_logits(bm(p), y))
     print(
         F.binary_cross_entropy(
             torch.from_numpy(bc.predict(p)).to(torch.get_default_dtype()), y
