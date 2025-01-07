@@ -1,5 +1,4 @@
 import __init__  # noqa
-import sys
 import logging
 import argparse
 

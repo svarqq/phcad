@@ -41,7 +41,9 @@ class HSCLoss(_Loss):
         return F.binary_cross_entropy(p_estimates, labels)
 
     def get_logits(self, model_outputs, **kwargs):
-        return torch.vmap(pseudo_huber_score)(model_outputs)
+        p = self.get_pests(model_outputs)
+        logits = torch.log(p) - torch.log(1 - p)
+        return logits
 
     def get_pests(self, model_outputs, **kwargs):
         p_estimates = torch.vmap(rbf_with_pseudo_huber)(model_outputs)

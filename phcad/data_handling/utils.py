@@ -256,12 +256,15 @@ def mean_std(dataset: Subset, ae=False):
     transforms += [v2.ToImage(), v2.ToDtype(torch.get_default_dtype(), scale=True)]
     transforms = v2.Compose(transforms)
     idx_list = range(len(dataset))
-    if dataset.dataset.extend:
-        idx_list = (
-            np.argwhere(np.asarray(dataset.indices) < dataset.dataset.orig_len)
-            .flatten()
-            .tolist()
-        )
+    try:
+        if dataset.dataset.extend:
+            idx_list = (
+                np.argwhere(np.asarray(dataset.indices) < dataset.dataset.orig_len)
+                .flatten()
+                .tolist()
+            )
+    except AttributeError:
+        pass
     imgs = [transforms(dataset[i][0]) for i in idx_list]
     dataset.dataset.transform = tmp_transform
 
