@@ -1,3 +1,4 @@
 save/*/*
 !save/*/.gitkeep
 *.pyc
+*.swp
