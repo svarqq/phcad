@@ -64,31 +64,7 @@ IMAGENET30_LABELS = [
     "volcano",
 ]
 IMAGENET30_LABEL_MAP = {lab: (lab.replace("-", " "),) for lab in IMAGENET30_LABELS}
-IMAGENET30_LABEL_MAP["american-alligator"] = (
-    "American alligator",
-    "Alligator mississipiensis",
-)
-IMAGENET30_LABEL_MAP["bikini"] = ("bikini", "two-piece")
-IMAGENET30_LABEL_MAP["dial-telephone"] = ("dial telephone", "dial phone")
-IMAGENET30_LABEL_MAP["dragonfly"] = (
-    "dragonfly",
-    "darning needle",
-    "devil's darning needle",
-    "sewing needle",
-    "snake feeder",
-    "snake doctor",
-    "mosquito hawk",
-    "skeeter hawk",
-)
-IMAGENET30_LABEL_MAP["grand-piano"] = ("grand piano", "grand")
-IMAGENET30_LABEL_MAP["hotdog"] = ("hotdog", "hot dog", "red hot")
-IMAGENET30_LABEL_MAP["revolver"] = ("revolver", "six-gun", "six-shooter")
-IMAGENET30_LABEL_MAP["tank"] = (
-    "tank",
-    "army tank",
-    "armored combat vehicle",
-    "armoured combat vehicle",
-)
+IMAGENET30_LABEL_MAP["american-alligator"] = ("American alligator",)
 
 MVTEC_DL_URL = (
     "https://www.mydrive.ch/"
