@@ -22,7 +22,7 @@ from phcad.models.layers import PlattCal
 if __name__ == "__main__":
     spec_oe_train = False
     spec_oe_cal = False
-    run_onevall("cifar10", "deer", "hsc", spec_oe_train, spec_oe_cal)
+    run_onevall("mpdd", "bracket_black", "ssim", spec_oe_train, spec_oe_cal)
 
     # wrn_open = wrn18.WideResNet18()
     # wrn_clf = wrn18.WideResNet18(clf=True)

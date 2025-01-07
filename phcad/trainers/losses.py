@@ -31,7 +31,7 @@ class DSVDDLoss(_Loss):
 
 
 class HSCLoss(_Loss):
-    eps = 1e-8
+    eps = 1e-4
 
     def __init__(self):
         super(HSCLoss, self).__init__()

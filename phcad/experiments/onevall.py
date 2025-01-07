@@ -154,6 +154,7 @@ def run_onevall(
         test_data = get_dataset(dataset_name, "test", label)
         test_data.dataset.transform = test_transform_full
         test_data.dataset.target_transform = mask_to_class
+        test_loader = DataLoader(test_data, 128, num_workers=4)
 
     train_copy = copy.deepcopy(train_full)
     oe_copy = copy.deepcopy(oe_data_full) if oe_data_full else None
