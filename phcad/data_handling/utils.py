@@ -245,16 +245,15 @@ def mean_std(dataset: Subset, ae=False):
         transforms.append(v2.Grayscale())
     transforms += [v2.ToImage(), v2.ToDtype(torch.get_default_dtype(), scale=True)]
     transforms = v2.Compose(transforms)
-    imgs = torch.stack([transforms(dataset[i][0]) for i in range(len(dataset))])
+    imgs = [transforms(dataset[i][0]) for i in range(len(dataset))]
     dataset.dataset.transform = tmp_transform
 
-    imgs = imgs.to(torch.get_default_dtype())
-    num_channels = imgs.shape[1]
-    if num_channels == 1:
-        return (imgs.mean(),), (imgs.std(),)
-    elif num_channels == 3:
-        return imgs.mean((0, 2, 3)), imgs.std((0, 2, 3))
-    else:
-        raise ValueError(
-            f"Inputs must have 1 or 3 channels, got channels={num_channels}"
-        )
+    # Unpack to channels to get around images in dataset being different sizes (ImageNet)
+    n_ch = imgs[0].shape[-3]
+    if n_ch != 1 and n_ch != 3:
+        raise ValueError(f"Inputs must have 1 or 3 channels, got channels={n_ch}")
+    ch_vals = [torch.cat([im[i, :, :] for im in imgs]) for i in range(n_ch)]
+
+    mean = [ch.mean() for ch in ch_vals]
+    std = [ch.std() for ch in ch_vals]
+    return mean, std
