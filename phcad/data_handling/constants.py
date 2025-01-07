@@ -63,8 +63,8 @@ IMAGENET30_LABELS = [
     "toaster",
     "volcano",
 ]
-IMAGENET30_LABEL_MAP = {lab: (lab.replace("-", " "),) for lab in IMAGENET30_LABELS}
-IMAGENET30_LABEL_MAP["american-alligator"] = ("American alligator",)
+IMAGENET30_LABEL_MAP = {lab: lab.replace("-", " ") for lab in IMAGENET30_LABELS}
+IMAGENET30_LABEL_MAP["american-alligator"] = "American alligator"
 
 MVTEC_DL_URL = (
     "https://www.mydrive.ch/"
