@@ -46,7 +46,7 @@ def get_fmnist_train_transform(mean, std, ae=False, **kwargs):
 
 
 def get_default_train_transform(
-    mean, std, resize_px=256, crop_px=224, ae=False, **kwargs
+    mean, std, resize_px=256, crop_px=224, ae=False, flip=True, **kwargs
 ):
     transforms = [
         v2.Resize(resize_px),
@@ -54,8 +54,9 @@ def get_default_train_transform(
     ]
     if ae:
         transforms.append(v2.Grayscale(1))
+    if flip:
+        transforms.append(v2.RandomHorizontalFlip(p=0.5))
     transforms += [
-        v2.RandomHorizontalFlip(p=0.5),
         v2.RandomCrop(crop_px),
         v2.ToImage(),
         v2.ToDtype(torch.get_default_dtype(), scale=True),

@@ -20,7 +20,7 @@ from phcad.data_handling.transforms import (
     label_to_zero,
     label_to_one,
 )
-from phcad.data_handling.constants import OE_DATASET_MAP
+from phcad.data_handling.constants import OE_DATASET_MAP, MVTEC_LABELS_NOFLIP
 from phcad.trainers.losses import LOSS_MAP
 from phcad.trainers.train import train
 from phcad.trainers.calibrate import apply_posthoc_calibration
@@ -92,8 +92,11 @@ def run_onevall(
         transform_and_model_identifier += "-ae"
     train_full = get_dataset(dataset_name, "train", label)
     mean_full, std_full = mean_std(train_full, ae=loss_name == "ssim")
+    flip = True
+    if "mvtec" in dataset_name and label in MVTEC_LABELS_NOFLIP:
+        flip = False
     train_transform_full = TRAIN_TRANSFORM_MAP[transform_and_model_identifier](
-        mean_full, std_full, ae=loss_name == "ssim"
+        mean_full, std_full, ae=loss_name == "ssim", flip=flip
     )
     test_transform_full = TEST_TRANSFORM_MAP[transform_and_model_identifier](
         mean_full, std_full, ae=loss_name == "ssim"
@@ -171,9 +174,9 @@ def run_onevall(
         )
         mean_partial, std_partial = mean_std(train_data_partial, ae=loss_name == "ssim")
         train_transform_partial = TRAIN_TRANSFORM_MAP[transform_and_model_identifier](
-            mean_partial, std_partial, ae=loss_name == "ssim"
+            mean_partial, std_partial, ae=loss_name == "ssim", flip=flip
         )
-        test_transform_partial = TRAIN_TRANSFORM_MAP[transform_and_model_identifier](
+        test_transform_partial = TEST_TRANSFORM_MAP[transform_and_model_identifier](
             mean_partial, std_partial, ae=loss_name == "ssim"
         )
 

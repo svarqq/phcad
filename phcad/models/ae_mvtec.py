@@ -13,7 +13,7 @@ class AEMvTec(nn.Module):
 
         layers = OrderedDict()
         layers["conv1"] = nn.Sequential(
-            nn.Conv2d(3, 16, 4, stride=2, padding=1),
+            nn.Conv2d(1, 16, 4, stride=2, padding=1),
             nn.BatchNorm2d(16),
             nn.LeakyReLU(0.2),
         )

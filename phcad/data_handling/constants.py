@@ -112,6 +112,7 @@ MVTEC_LABELS = [
     "wood",
     "zipper",
 ]
+MVTEC_LABELS_NOFLIP = ["cable", "capsul", "metal_nut", "pill", "toothbrush"]
 MVTEC_LABEL_MAP = {lab: lab for lab in MVTEC_LABELS}
 
 MPDD_LABELS = [

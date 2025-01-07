@@ -20,14 +20,12 @@ from phcad.models.layers import PlattCal
 
 
 if __name__ == "__main__":
-    spec_oe_train = False
-    spec_oe_cal = False
-    run_onevall("fmnist", "top", "ssim", spec_oe_train, spec_oe_cal)
+    # spec_oe_train = False
+    # spec_oe_cal = False
+    # run_onevall("fmnist", "top", "ssim", spec_oe_train, spec_oe_cal)
 
-    # wrn_open = wrn18.WideResNet18()
-    # wrn_clf = wrn18.WideResNet18(clf=True)
-    # ae = ae_mvtec.AEMvTec()
+    #wrn_open = wrn18.WideResNet18()
+    #wrn_clf = wrn18.WideResNet18(clf=True)
+    #ae = ae_mvtec.AEMvTec()
 
-    # import ipdb
-
-    # ipdb.set_trace()
+    #breakpoint()
