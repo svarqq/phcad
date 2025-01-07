@@ -17,8 +17,9 @@ class CNN_CIFAR10(nn.Module):
         self.bias = bias
 
         layers = OrderedDict()
+        nch = 3 if not ae else 1
         layers["conv1"] = nn.Sequential(
-            nn.Conv2d(3, 32, 5, padding=2, bias=self.bias),
+            nn.Conv2d(nch, 32, 5, padding=2, bias=self.bias),
             nn.BatchNorm2d(32, eps=self.eps, affine=self.bias),
             nn.LeakyReLU(),
         )

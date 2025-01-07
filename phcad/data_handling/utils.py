@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Subset, ConcatDataset
 from torchvision.datasets import CIFAR10, CIFAR100, FashionMNIST
-import torchvision.transforms.v2.functional as F
+from torchvision.transforms import v2
 
 from phcad.data_handling.constants import (
     DATADIR,
@@ -233,17 +233,15 @@ class BalancedLoader:
         return batch
 
 
-def mean_std(dataset: Subset):
+def mean_std(dataset: Subset, ae=False):
     tmp_transform = dataset.dataset.transform
     dataset.dataset.transform = None
-    imgs = torch.stack(
-        [
-            F.to_dtype(
-                F.to_image(dataset[i][0]), dtype=torch.get_default_dtype(), scale=True
-            )
-            for i in range(len(dataset))
-        ]
-    )
+    transforms = []
+    if ae:
+        transforms.append(v2.Grayscale())
+    transforms += [v2.ToImage(), v2.ToDtype(torch.get_default_dtype(), scale=True)]
+    transforms = v2.Compose(transforms)
+    imgs = torch.stack([transforms(dataset[i][0]) for i in range(len(dataset))])
     dataset.dataset.transform = tmp_transform
 
     imgs = imgs.to(torch.get_default_dtype())

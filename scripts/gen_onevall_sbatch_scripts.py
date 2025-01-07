@@ -24,6 +24,7 @@ def generate_batch(dataset_name, test_one_label):
     with open(slurm_subdir / f"{dataset_name}-{postfix}.sh", "w") as f:
         f.write("#!/usr/bin/env bash\n\n")
         f.write("sbatch " + "\nsbatch ".join(map(str, sbpaths)))
+        f.write("\n")
 
 
 def generate_sbatch(
@@ -48,7 +49,7 @@ def generate_sbatch(
 
 conda activate ml
 """
-    postfix = "conda deactivate"
+    postfix = "conda deactivate\n"
 
     sbatch_dir = slurm_subdir / dataset_name
     logdir = sbatch_dir / "logs"
@@ -59,15 +60,16 @@ conda activate ml
 
     oe_train = "spec" if spectral_oe_train else "oe"
     oe_cal = "spec" if spectral_oe_cal else "oe"
-    job_name = f"{loss_name}-{oe_train}-{oe_cal}"
 
+    log_name = f"{loss_name}-{oe_train}-{oe_cal}"
     if test_one_label:
-        log_path = logdir / f"{job_name}_%j.log"
-        err_path = errdir / f"{job_name}_%j.log"
+        log_path = logdir / f"{log_name}_%j.log"
+        err_path = errdir / f"{log_name}_%j.log"
     else:
-        log_path = logdir / f"{job_name}_%a_%A.log"
-        err_path = errdir / f"{job_name}_%a_%A.log"
+        log_path = logdir / f"{log_name}_%a_%A.log"
+        err_path = errdir / f"{log_name}_%a_%A_err.log"
 
+    job_name = f"{dataset_name}-{log_name}"
     dynamic_sbatch_args = (
         f"#SBATCH -J {job_name}\n"
         f"#SBATCH --output={log_path}\n"
@@ -93,7 +95,7 @@ conda activate ml
 
     sbatch_script = prefix + dynamic_sbatch_args + infix + dynamic_cmd_line + postfix
     postfix = "test-one" if test_one_label else "all"
-    sbatch_savepath = sbatch_dir / f"{job_name}-{postfix}.sbatch"
+    sbatch_savepath = sbatch_dir / f"{log_name}-{postfix}.sbatch"
     with open(sbatch_savepath, "w") as f:
         f.write(sbatch_script)
     return sbatch_savepath

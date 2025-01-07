@@ -124,4 +124,10 @@ MPDD_LABELS = [
 ]
 MPDD_LABEL_MAP = {lab: lab for lab in MPDD_LABELS}
 
-OE_DATASET_MAP = {"cifar10": "cifar100", "fmnist": "cifar100"}
+OE_DATASET_MAP = {
+    "cifar10": "cifar100",
+    "fmnist": "cifar100",
+    "imagenet30": "imagenet21k-minus1k",
+    "mvtec": "imagenet21k-minus1k",
+    "mpdd": "imagenet21k-minus1k",
+}

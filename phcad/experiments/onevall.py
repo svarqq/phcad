@@ -1,4 +1,3 @@
-from functools import partial
 import copy
 
 from torch.utils.data import DataLoader, Subset, ConcatDataset
@@ -50,16 +49,21 @@ def run_onevall(
         raise ValueError(
             f"spectral_oe_train can't be true for unsupervised loss {loss_name}"
         )
+
+    transform_and_model_identifier = dataset_name
+    if dataset_name != "fmnist" and dataset_name != "cifar10":
+        transform_and_model_identifier += "-ae"
+
     if loss_name == "ssim":
         if dataset_name == "cifar10" or dataset_name == "fmnist":
-            base_loss = base_loss(win_size=5)
+            base_loss = base_loss(win_size=11)
         else:
             base_loss = base_loss(win_size=11)
 
     anomaly_score = ANOMALY_SCORES[loss_name]
     if loss_name == "ssim":
         if dataset_name == "cifar10" or dataset_name == "fmnist":
-            anomaly_score = anomaly_score(win_size=5)
+            anomaly_score = anomaly_score(win_size=11)
         else:
             anomaly_score = anomaly_score(win_size=11)
 
@@ -79,12 +83,21 @@ def run_onevall(
     elif loss_name == "bce":
         # Close open layer with FC to 1 node
         base_model_args["clf"] = True
+    elif loss_name == "dsvdd":
+        base_model_args["bias"] = False
 
     # Set up data
+    transform_and_model_identifier = dataset_name
+    if dataset_name != "fmnist" and dataset_name != "cifar10":
+        transform_and_model_identifier += "-ae"
     train_full = get_dataset(dataset_name, "train", label)
-    mean_full, std_full = mean_std(train_full)
-    train_transform_full = TRAIN_TRANSFORM_MAP[dataset_name](mean_full, std_full)
-    test_transform_full = TEST_TRANSFORM_MAP[dataset_name](mean_full, std_full)
+    mean_full, std_full = mean_std(train_full, ae=loss_name == "ssim")
+    train_transform_full = TRAIN_TRANSFORM_MAP[transform_and_model_identifier](
+        mean_full, std_full, ae=loss_name == "ssim"
+    )
+    test_transform_full = TEST_TRANSFORM_MAP[transform_and_model_identifier](
+        mean_full, std_full, ae=loss_name == "ssim"
+    )
 
     train_full.dataset.transform = train_transform_full
     train_full.dataset.target_transform = label_to_zero
@@ -156,12 +169,12 @@ def run_onevall(
         train_data_partial, cal_data_indist = get_train_cal_splits(
             train_copy, idcs_savepath=train_cal_splits_dir / f"{basename}-train.json"
         )
-        mean_partial, std_partial = mean_std(train_data_partial)
-        train_transform_partial = TRAIN_TRANSFORM_MAP[dataset_name](
-            mean_partial, std_partial
+        mean_partial, std_partial = mean_std(train_data_partial, ae=loss_name == "ssim")
+        train_transform_partial = TRAIN_TRANSFORM_MAP[transform_and_model_identifier](
+            mean_partial, std_partial, ae=loss_name == "ssim"
         )
-        test_transform_partial = TRAIN_TRANSFORM_MAP[dataset_name](
-            mean_partial, std_partial
+        test_transform_partial = TRAIN_TRANSFORM_MAP[transform_and_model_identifier](
+            mean_partial, std_partial, ae=loss_name == "ssim"
         )
 
         for ds in [train_data_partial, cal_data_indist]:
@@ -214,7 +227,7 @@ def run_onevall(
         # Train partial
         partial_pre = f"{basename}-partial-{oe_train_type}"
 
-        model_partial = MODEL_MAP[dataset_name](**base_model_args)
+        model_partial = MODEL_MAP[transform_and_model_identifier](**base_model_args)
         if loss_name == "dsvdd":
             center_savepath = model_dir / f"{partial_pre}-center.pt"
             center = dsvdd_center(model_partial, train_loader_partial, center_savepath)
@@ -268,7 +281,7 @@ def run_onevall(
         )
 
         # Post-hoc training
-        phtrain_pre = f"{partial_pre}-phtrain-{oe_cal_type}.json"
+        phtrain_pre = f"{partial_pre}-phtrain-{oe_cal_type}"
         model_phtrain = copy.deepcopy(model_partial)
         model_phtrain.prepare_calibration_network()
         loss_phtrain = LOSS_MAP["bce"]
@@ -399,7 +412,7 @@ def run_onevall(
         # Train full
         full_pre = f"{basename}-full-{oe_train_type}"
 
-        model_full = MODEL_MAP[dataset_name](**base_model_args)
+        model_full = MODEL_MAP[transform_and_model_identifier](**base_model_args)
         if loss_name == "dsvdd":
             center_savepath = model_dir / f"{full_pre}-center.pt"
             center = dsvdd_center(model_full, train_loader_full, center_savepath)

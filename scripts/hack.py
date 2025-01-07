@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from sklearn.linear_model import LogisticRegression
 
-from phcad.models.cnn_cifar10 import CNN_CIFAR10
+from phcad.models import wrn18, ae_mvtec
 from phcad.data_handling.spectral_natural_images import SpectralNaturalImages
 from phcad.data_handling.mvtec_mpdd import MVTecMPDD
 from phcad.data_handling.utils import get_dataset, get_train_cal_splits
@@ -22,21 +22,12 @@ from phcad.models.layers import PlattCal
 if __name__ == "__main__":
     spec_oe_train = False
     spec_oe_cal = False
-    run_onevall("fmnist", "ankle-boot", "ssim", spec_oe_train, spec_oe_cal)
+    run_onevall("fmnist", "top", "ssim", spec_oe_train, spec_oe_cal)
 
-    # data = get_dataset("mvtec", "test", "bottle")
-    # for im, mask in data:
-    #    if np.all(mask.numpy() == 0):
-    #        print("Found indist")
-    #    elif not np.all(mask.numpy() != 0) and not np.all(mask.numpy() != 1):
-    #        print("Found anom")
-    #    else:
-    #        print(np.unique(mask.numpy()))
-    #        print(np.all(mask.numpy() != 0), np.all(mask.numpy() != 1))
-    #        print("ERRORRERROR")
-    #        break
+    # wrn_open = wrn18.WideResNet18()
+    # wrn_clf = wrn18.WideResNet18(clf=True)
+    # ae = ae_mvtec.AEMvTec()
 
-    # model = CNN_CIFAR10(clf=True)
-    # print(model)
-    # model.prepare_calibration_network()
-    # print(model)
+    # import ipdb
+
+    # ipdb.set_trace()

@@ -1,92 +1,91 @@
 from collections import OrderedDict
-import tomllib
-import torch
 
-from phcad.models.layers import PerPixelPlattCal
-from phcad.constants import ARCHDIR
+from torch import nn
+
+from phcad.models.utils import construct_decoder
 
 
-class AEMvTec(torch.nn.Module):
-    def __init__(self):
+class AEMvTec(nn.Module):
+    # The autoencoder used for objects in the mvtec paper
+    def __init__(self, **kwargs):
         super(AEMvTec, self).__init__()
+        self.phcal = False
 
-        input_layer_channels = 3  # rgb
-        with open(ARCHDIR / "ae-mvtec.toml", "rb") as f:
-            enc_conv_layers = tomllib.load(f)["network"]["encoder"]
-        encoder, decoder = [], []
-        for lnum, conv_layer in enumerate(enc_conv_layers):
-            first_layer = lnum == 0
-            last_layer = lnum == len(enc_conv_layers) - 1
-
-            if first_layer:
-                conv_layer["args"]["in_channels"] = input_layer_channels
-
-            enc_unit = OrderedDict()
-            conv = torch.nn.Conv2d(**conv_layer["args"])
-            enc_unit.update({"conv": conv})
-            if not last_layer:
-                enc_unit.update(
-                    {"bn": torch.nn.BatchNorm2d(conv_layer["args"]["out_channels"])}
-                )
-                enc_unit.update({"activ": torch.nn.LeakyReLU(0.2)})
-            encoder.append(torch.nn.Sequential(enc_unit))
-
-            # Mirror encoder to construct decoder
-            dec_unit = OrderedDict()
-            tconv_layer = conv_layer.copy()
-            tconv_layer["args"]["in_channels"], tconv_layer["args"]["out_channels"] = (
-                tconv_layer["args"]["out_channels"],
-                tconv_layer["args"]["in_channels"],
-            )
-            tconv = torch.nn.ConvTranspose2d(**tconv_layer["args"])
-            dec_unit.update({"tconv": tconv})
-            if not first_layer:
-                dec_unit.update(
-                    {"bn": torch.nn.BatchNorm2d(tconv_layer["args"]["out_channels"])}
-                )
-                dec_unit.update({"activ": torch.nn.LeakyReLU(0.2)})
-            decoder = [torch.nn.Sequential(dec_unit)] + decoder
-        self.encoder = torch.nn.Sequential(*encoder)
-        self.decoder = torch.nn.Sequential(*decoder)
+        layers = OrderedDict()
+        layers["conv1"] = nn.Sequential(
+            nn.Conv2d(3, 16, 4, stride=2, padding=1),
+            nn.BatchNorm2d(16),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv2"] = nn.Sequential(
+            nn.Conv2d(16, 32, 4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv3"] = nn.Sequential(
+            nn.Conv2d(32, 32, 4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv4"] = nn.Sequential(
+            nn.Conv2d(32, 32, 3, stride=1, padding=1),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv5"] = nn.Sequential(
+            nn.Conv2d(32, 64, 4, stride=2, padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv6"] = nn.Sequential(
+            nn.Conv2d(64, 64, 3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv7"] = nn.Sequential(
+            nn.Conv2d(64, 128, 4, stride=2, padding=1),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv8"] = nn.Sequential(
+            nn.Conv2d(128, 64, 3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv9"] = nn.Sequential(
+            nn.Conv2d(64, 32, 3, stride=1, padding=1),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.2),
+        )
+        layers["conv10"] = nn.Sequential(
+            nn.Conv2d(32, 100, 8, stride=1),
+        )
+        encoder = nn.Sequential(layers)
+        decoder = construct_decoder(encoder)
+        self.layers = nn.Sequential(
+            OrderedDict((("encoder", encoder), ("decoder", decoder)))
+        )
 
     def forward(self, x):
-        recon = self.decoder(self.encoder(x))
-        try:
-            if not self.cal:
-                return recon
-            else:
-                recon_across_channels = recon.mean(1)
-                return self.cal(recon_across_channels)
-        except AttributeError:
-            return recon
+        return self.layers(x)
 
-    def setup_cal(self, wh_shape, head_layers_to_reset=0):
-        try:
-            if self.cal:
-                raise RuntimeError("Model already setup for calibration")
-        except AttributeError:
-            pass
-        self.requires_grad_(False)
+    def prepare_calibration_network(self):
+        if self.phcal:
+            raise Exception("Network already set up for post-hoc calibration")
 
-        head_layers = []
-        for i in range(1, head_layers_to_reset + 1):
-            layer = list(self.decoder.children())[-i]
-            layer.requires_grad_(True)
-
-            def reset(child):
-                try:
-                    child.reset_parameters()
-                except AttributeError:
-                    pass
-
-            layer.apply(reset)
-            head_layers.append(layer)
-
-        self.cal = PerPixelPlattCal(wh_shape)
-        head_layers.append(self.cal)
-        return head_layers
-
-
-if __name__ == "__main__":
-    ae = AEMvTec(gray=False)
-    print(ae)
+        calibration_head = OrderedDict()
+        calibration_head["pre-fc"] = nn.Sequential(
+            nn.Flatten(), nn.BatchNorm1d(100), nn.LeakyReLU()
+        )
+        calibration_head["fc1"] = nn.Sequential(nn.Linear(100, 1), nn.Flatten(0, 1))
+        layers = nn.Sequential(
+            OrderedDict(
+                (
+                    ("encoder", self.layers.encoder),
+                    ("calibration_head", nn.Sequential(calibration_head)),
+                )
+            )
+        )
+        layers.encoder.requires_grad_(False)
+        self.layers = layers
+        self.phcal = True

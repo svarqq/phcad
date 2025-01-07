@@ -8,7 +8,7 @@ from phcad.data_handling.transforms import (
     TRAIN_TRANSFORM_MAP,
     generic_norm_transform,
     indist_target_transform,
-    anom_target_transform,
+    label_to_one,
 )
 from phcad.data_handling.constants import OE_DATASET_MAP
 from phcad.trainers.losses import CompositeBCE
@@ -41,14 +41,14 @@ def run_spectral_vs_oe(dataset_name, label, device=None):
     test_data_in.dataset.target_transform = indist_target_transform
     test_data_anom = get_dataset(dataset_name, "test", label, complement=True)
     test_data_anom.dataset.transform = generic_norm_transform(mean, std)
-    test_data_anom.dataset.target_transform = anom_target_transform
+    test_data_anom.dataset.target_transform = label_to_one
     test_data = test_data_in + test_data_anom
 
     oe_data_1 = get_dataset(OE_DATASET_MAP[dataset_name], "train")
     oe_data_2 = get_dataset(OE_DATASET_MAP[dataset_name], "test")
     for dataset in [oe_data_1, oe_data_2]:
         dataset.dataset.transform = transform
-        dataset.dataset.target_transform = anom_target_transform
+        dataset.dataset.target_transform = label_to_one
     oe_data = oe_data_1 + oe_data_2
 
     imshape = train_data[0][0].shape
