@@ -11,6 +11,7 @@ from phcad.data_handling.utils import (
     get_train_cal_splits,
     mean_std,
     BalancedLoader,
+    DATASET_MAP,
 )
 from phcad.data_handling.spectral_natural_images import SpectralNaturalImages
 from phcad.data_handling.transforms import (
@@ -19,6 +20,7 @@ from phcad.data_handling.transforms import (
     generic_norm_transform,
     label_to_zero,
     label_to_one,
+    mask_to_class,
 )
 from phcad.data_handling.constants import OE_DATASET_MAP, MVTEC_LABELS_NOFLIP
 from phcad.trainers.losses import LOSS_MAP
@@ -87,6 +89,8 @@ def run_onevall(
         base_model_args["bias"] = False
 
     # Set up data
+    _, _, dataset_type = DATASET_MAP[dataset_name]
+
     train_full = get_dataset(dataset_name, "train", label)
     mean_full, std_full = mean_std(train_full, ae=loss_name == "ssim")
     flip = True
@@ -135,14 +139,21 @@ def run_onevall(
         else:
             train_loader_full = BalancedLoader(train_full, oe_data_full)
 
-    test_data_in = get_dataset(dataset_name, "test", label)
-    test_data_in.dataset.transform = test_transform_full
-    test_data_in.dataset.target_transform = label_to_zero
-    test_data_anom = get_dataset(dataset_name, "test", label, complement=True)
-    test_data_anom.dataset.transform = test_transform_full
-    test_data_anom.dataset.target_transform = label_to_one
-    test_data = test_data_in + test_data_anom
-    test_loader = DataLoader(test_data, 128, num_workers=4)
+    if dataset_type == "classification":
+        # onevall
+        test_data_in = get_dataset(dataset_name, "test", label)
+        test_data_in.dataset.transform = test_transform_full
+        test_data_in.dataset.target_transform = label_to_zero
+        test_data_anom = get_dataset(dataset_name, "test", label, complement=True)
+        test_data_anom.dataset.transform = test_transform_full
+        test_data_anom.dataset.target_transform = label_to_one
+        test_data = test_data_in + test_data_anom
+        test_loader = DataLoader(test_data, 128, num_workers=4)
+    elif dataset_type == "segmentation":
+        # localized, subtle anomalies
+        test_data = get_dataset(dataset_name, "test", label)
+        test_data.dataset.transform = test_transform_full
+        test_data.dataset.target_transform = mask_to_class
 
     train_copy = copy.deepcopy(train_full)
     oe_copy = copy.deepcopy(oe_data_full) if oe_data_full else None

@@ -6,6 +6,12 @@ import torchvision.transforms.v2 as v2
 label_to_zero = v2.Lambda(lambda x: torch.tensor(0, dtype=torch.get_default_dtype()))
 label_to_one = v2.Lambda(lambda x: torch.tensor(1, dtype=torch.get_default_dtype()))
 
+mask_to_class = v2.Lambda(
+    lambda mask: torch.tensor(0, dtype=torch.get_default_dtype())
+    if torch.all(mask == 0)
+    else torch.tensor(1, dtype=torch.get_default_dtype())
+)
+
 
 def get_cifar_train_transform(mean, std, ae=False, **kwargs):
     transforms = [

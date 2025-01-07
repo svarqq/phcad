@@ -125,6 +125,12 @@ def get_dataset(
         raise ValueError(
             f"Label {label} is not in dataset {dataset_name}. Choose one of {list(label_map.keys())}"
         )
+    if split == "test" and dataset_type == "segmentation" and complement:
+        error_msg = (
+            "Defensively disallowing complement of test segmentation data from "
+            "being fetched, as it's designed for onevall testing"
+        )
+        raise ValueError(error_msg)
 
     if dataset_name == "imagenet30":
         parentdir = "imagenet1k"
@@ -143,28 +149,32 @@ def get_dataset(
     else:
         args["train"] = True if split == "train" else False
         args["download"] = True
-    full_data = dataset_class(**args)
-    if not label:
-        return Subset(full_data, list(range(len(full_data))))
 
     if dataset_type == "classification":
+        full_data = dataset_class(**args)
+        if not label:
+            return Subset(full_data, list(range(len(full_data))))
+
         labels = np.asarray(full_data.targets)
+        if not complement:
+            label_idcs = (
+                np.argwhere(labels == full_data.class_to_idx[label_map[label]])
+                .flatten()
+                .tolist()
+            )
+        else:
+            label_idcs = (
+                np.argwhere(labels != full_data.class_to_idx[label_map[label]])
+                .flatten()
+                .tolist()
+            )
+        label_data = Subset(full_data, label_idcs)
+        return label_data
+
     elif dataset_type == "segmentation":
-        labels = np.asarray(full_data.class_list)
-    if not complement:
-        label_idcs = (
-            np.argwhere(labels == full_data.class_to_idx[label_map[label]])
-            .flatten()
-            .tolist()
-        )
-    else:
-        label_idcs = (
-            np.argwhere(labels != full_data.class_to_idx[label_map[label]])
-            .flatten()
-            .tolist()
-        )
-    label_data = Subset(full_data, label_idcs)
-    return label_data
+        args["label"] = label
+        label_data = dataset_class(**args)
+        return Subset(label_data, list(range(len(label_data))))
 
 
 class BalancedLoader:
@@ -245,7 +255,14 @@ def mean_std(dataset: Subset, ae=False):
         transforms.append(v2.Grayscale())
     transforms += [v2.ToImage(), v2.ToDtype(torch.get_default_dtype(), scale=True)]
     transforms = v2.Compose(transforms)
-    imgs = [transforms(dataset[i][0]) for i in range(len(dataset))]
+    idx_list = range(len(dataset))
+    if dataset.dataset.extend:
+        idx_list = (
+            np.argwhere(np.asarray(dataset.indices) < dataset.dataset.orig_len)
+            .flatten()
+            .tolist()
+        )
+    imgs = [transforms(dataset[i][0]) for i in idx_list]
     dataset.dataset.transform = tmp_transform
 
     # Unpack into 1D channels to get around images in dataset being different sizes (ImageNet)

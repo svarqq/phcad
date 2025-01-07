@@ -2,15 +2,21 @@ import logging
 import tarfile
 from PIL import Image
 from pathlib import Path
+import itertools
 
 import requests
 import tqdm
+import numpy as np
 import torch
 from torchvision.datasets import VisionDataset
 from torchvision.io import read_image, ImageReadMode
 import torchvision.transforms.v2.functional as F
 
-from phcad.data_handling.constants import DATADIR, MVTEC_DL_URL
+from phcad.data_handling.constants import (
+    MVTEC_DL_URL,
+    MVTEC_LABEL_MAP,
+    MPDD_LABEL_MAP,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -18,12 +24,13 @@ logger = logging.getLogger(__name__)
 
 class MVTecMPDD(VisionDataset):
     meta_fname = "meta.pt"
-    extension_factor = 10
+    train_extension_factor = 10
 
     def __init__(
         self,
         dataset_name,
         root,
+        label=None,
         train=True,
         transform=None,
         target_transform=None,
@@ -40,19 +47,51 @@ class MVTecMPDD(VisionDataset):
 
         if dataset_name == "mvtec":
             extract_path = download_and_extract_mvtec(root)
+            label_map = MVTEC_LABEL_MAP
         else:
             extract_path = root / "MPDD"
+            label_map = MPDD_LABEL_MAP
         meta = generate_meta(self.root, extract_path)
         self.class_to_idx = meta["class_to_idx"]
+
         if train:
-            self.data = meta["train_data"]
-            self.class_list = meta["train_classes"]
+            orig_classes = meta["train_classes"]
         else:
-            self.data = meta["test_data"]
-            self.class_list = meta["test_classes"]
+            orig_classes = meta["test_classes"]
+
+        if label:
+            label_idcs = (
+                np.argwhere(
+                    np.asarray(orig_classes) == self.class_to_idx[label_map[label]]
+                )
+                .flatten()
+                .tolist()
+            )
+        else:
+            label_idcs = range(len(orig_classes))
+
+        if train:
+            label_data = [meta["train_data"][i] for i in label_idcs]
+            label_classes = [orig_classes[i] for i in label_idcs]
+            self.orig_len = len(label_data)
+
+            self.extend = True
+            self.data = list(
+                itertools.chain.from_iterable(
+                    [label_data] * MVTecMPDD.train_extension_factor
+                )
+            )
+            self.class_list = list(
+                itertools.chain.from_iterable(
+                    [label_classes] * MVTecMPDD.train_extension_factor
+                )
+            )
+        else:
+            self.data = [meta["test_data"][i] for i in label_idcs]
+            self.class_list = [orig_classes[i] for i in label_idcs]
 
     def __len__(self):
-        return MVTecMPDD.extension_factor * len(self.data)
+        return len(self.data)
 
     def __getitem__(self, idx):
         idx %= len(self.data)
