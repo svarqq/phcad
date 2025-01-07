@@ -248,11 +248,11 @@ def mean_std(dataset: Subset, ae=False):
     imgs = [transforms(dataset[i][0]) for i in range(len(dataset))]
     dataset.dataset.transform = tmp_transform
 
-    # Unpack to channels to get around images in dataset being different sizes (ImageNet)
+    # Unpack into 1D channels to get around images in dataset being different sizes (ImageNet)
     n_ch = imgs[0].shape[-3]
     if n_ch != 1 and n_ch != 3:
         raise ValueError(f"Inputs must have 1 or 3 channels, got channels={n_ch}")
-    ch_vals = [torch.cat([im[i, :, :] for im in imgs]) for i in range(n_ch)]
+    ch_vals = [torch.cat([im[i, :, :].view(-1) for im in imgs]) for i in range(n_ch)]
 
     mean = [ch.mean() for ch in ch_vals]
     std = [ch.std() for ch in ch_vals]
