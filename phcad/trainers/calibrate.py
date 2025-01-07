@@ -14,7 +14,7 @@ def apply_posthoc_calibration(
     inputs_to_val_to_cal,  # logits for platt, probability estimates for beta
     dataloader,
     savepath=None,
-    num_scores=50000,
+    num_scores=20000,
     modules_in_fn=[],
     device=None,
 ):
