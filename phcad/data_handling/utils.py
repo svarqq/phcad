@@ -17,7 +17,7 @@ from phcad.data_handling.constants import (
     MVTEC_LABEL_MAP,
     MPDD_LABEL_MAP,
 )
-from phcad.data_handling.imagenet import ImageNet30
+from phcad.data_handling.imagenet import ImageNet30, ImageNet21KMinus1K
 from phcad.data_handling.mvtec_mpdd import MVTecMPDD
 
 
@@ -30,6 +30,7 @@ DATASET_MAP = {
     "cifar10": (CIFAR10, CIFAR10_LABEL_MAP, "classification"),
     "cifar100": (CIFAR100, None, "classification"),
     "imagenet30": (ImageNet30, IMAGENET30_LABEL_MAP, "classification"),
+    "imagenet21k-minus1k": (ImageNet21KMinus1K, None, "classification"),
     "mvtec": (MVTec, MVTEC_LABEL_MAP, "segmentation"),
     "mpdd": (MPDD, MPDD_LABEL_MAP, "segmentation"),
 }
@@ -129,6 +130,9 @@ def get_dataset(
         parentdir = "imagenet1k"
     elif dataset_name == "imagenet21k-minus1k":
         parentdir = "imagenet21k"
+        dataset_dir = datadir / parentdir
+        oe_data = ImageNet21KMinus1K(root=dataset_dir)
+        return Subset(oe_data, list(range(len(oe_data))))
     else:
         parentdir = dataset_name
     dataset_dir = datadir / parentdir
