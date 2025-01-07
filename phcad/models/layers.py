@@ -1,7 +1,5 @@
 import torch
 
-import torch.nn.functional as F
-
 
 class PlattCal(torch.nn.Module):
     def __init__(self):
@@ -28,7 +26,7 @@ class PerPixelPlattCal(torch.nn.Module):
 
 
 class BetaCal(torch.nn.Module):
-    eps = 1e-10
+    eps = 1e-4
 
     def __init__(self):
         super(BetaCal, self).__init__()
