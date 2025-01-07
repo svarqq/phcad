@@ -34,16 +34,22 @@ def generate_sbatch(
     spectral_oe_cal=False,
     test_one_label=False,
 ):
-    prefix = """#!/usr/bin/env bash
+    small = dataset_name == "cifar10" or dataset_name == "fmnist"
+    mem = "4G" if small else "16G"
+    prefix = (
+        """#!/usr/bin/env bash
 #SBATCH --mail-type=ALL
 #SBATCH -t 1-0  # 1 day
-#SBATCH --mem=4G
+#SBATCH --mem="""
+        + mem
+        + """
 #SBATCH -N 1
 #SBATCH -n 5
 #SBATCH --cpus-per-task=1
 #SBATCH --gres gpu:V100:1
 #SBATCH --partition gpuidle
 """
+    )
     infix = """module load anaconda3/latest
 . $ANACONDA_HOME/etc/profile.d/conda.sh
 
