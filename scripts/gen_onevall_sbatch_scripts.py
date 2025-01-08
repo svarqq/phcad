@@ -35,7 +35,7 @@ def generate_sbatch(
     test_one_label=False,
 ):
     small = dataset_name == "cifar10" or dataset_name == "fmnist"
-    mem = "4G" if small else "16G"
+    mem = "4G" if small else "32G"
     prefix = (
         """#!/usr/bin/env bash
 #SBATCH --mail-type=ALL
