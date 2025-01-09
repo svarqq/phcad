@@ -30,6 +30,14 @@ class DSVDDLoss(_Loss):
         return F.sigmoid(self.get_logits(model_outputs))
 
 
+class FCDDLoss(_Loss):
+    def __init__(self):
+        super(FCDDLoss, self).__init__()
+
+    def forward(self, model_outputs, **kwargs):
+        pass
+
+
 class HSCLoss(_Loss):
     eps = 1e-4
 
@@ -65,24 +73,32 @@ class CompositeBCE(_Loss):
 
 
 class SSIMLoss(_Loss):
+    eps = 1e-4
+
     # Note all SSIM values lie between [ims different <-- -1 and 1 --> ims identical]
-    def __init__(self, **ssim_args):
+    def __init__(self, reduce=True, **ssim_args):
         super(SSIMLoss, self).__init__()
         self.f = torch.vmap(partial(ssim, **ssim_args))
         self.ch_dim = -3
         self.px_dims = (-1, -2)
+        self.reduce = reduce
 
     def forward(self, model_inputs, model_outputs, **kwargs):
         return 1 - (self.f(model_inputs, model_outputs, **kwargs)).mean()
 
-    def get_logits(self, model_inputs, model_outputs, reduce=True, **kwargs):
-        ssim_vals = self.f(model_inputs, model_outputs, **kwargs).mean(self.ch_dim)
-        if reduce:
-            return 1 - ssim_vals.mean(self.px_dims)
-        else:
-            return 1 - ssim_vals
+    def get_logits(self, model_inputs, model_outputs, **kwargs):
+        p = self.get_pests(model_inputs, model_outputs)
+        logits = torch.log(p) - torch.log(1 - p)
+        return logits
 
     def get_pests(self, model_inputs, model_outputs, **kwargs):
+        p = (1 - self.f(model_inputs, model_outputs, **kwargs).mean(self.ch_dim)) / 2
+        p = torch.clamp(p, SSIMLoss.eps, 1 - SSIMLoss.eps)
+        if self.reduce:
+            return p.mean(self.px_dims)
+        else:
+            return p
+
         return self.get_logits(model_inputs, model_outputs, **kwargs) / 2
 
 
@@ -92,3 +108,5 @@ LOSS_MAP = {
     "hsc": HSCLoss(),
     "ssim": SSIMLoss,
 }
+
+SEG_LOSS_MAP = {"bce": CompositeBCE(), "fcdd": None, "ssim": SSIMLoss}
