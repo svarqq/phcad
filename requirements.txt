@@ -2,6 +2,7 @@ anomalib	# does not install all dependencies
 ffcount
 kornia		# anomalib dep
 lightning	# anomalib dep
+matplotlib	# anomalib dep
 opencv-python	# anomalib dep
 requests
 scikit-learn

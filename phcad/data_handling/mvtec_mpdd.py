@@ -94,7 +94,6 @@ class MVTecMPDD(VisionDataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        idx = len(self.data)
         impath, maskpath = self.data[idx]
         with open(impath, "rb") as f:
             img = Image.open(f)
