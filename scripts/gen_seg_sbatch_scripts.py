@@ -2,7 +2,7 @@ import __init__  # noqa
 from pathlib import Path
 import argparse
 
-from phcad.trainers.losses import LOSS_MAP
+from phcad.trainers.losses import SEG_LOSS_MAP
 from constants import DS_TO_LABELS_MAP, SLURMDIR
 
 slurm_subdir = SLURMDIR / "segmentation"
@@ -13,7 +13,7 @@ parser.add_argument("-t", "--test-one", action="store_true")
 
 def generate_batch(dataset_name, test_one_label):
     sbpaths = []
-    for loss_name in LOSS_MAP.keys():
+    for loss_name in SEG_LOSS_MAP.keys():
         sbpath = generate_sbatch(dataset_name, loss_name, test_one_label=test_one_label)
         sbpaths.append(sbpath)
         sbpath = generate_sbatch(
