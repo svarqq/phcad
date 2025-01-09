@@ -32,7 +32,7 @@ def train(
             net.to("cpu").eval()
             return net
         opt.load_state_dict(checkpoint["opt_state"])
-        sched = checkpoint["scheduler"]
+        sched.load_state_dict(checkpoint["sched_state"])
         sched.optimizer = opt
         last_epoch = checkpoint["epoch-loss"][-1][0]
         logger.info(
@@ -68,7 +68,7 @@ def train(
         checkpoint["epoch-loss"].append((epoch, epoch_loss))
         checkpoint["model_state"] = net.state_dict()
         checkpoint["opt_state"] = opt.state_dict()
-        checkpoint["scheduler"] = sched
+        checkpoint["sched_state"] = sched.state_dict()
         torch.save(
             checkpoint,
             savepath,

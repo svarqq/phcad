@@ -115,8 +115,7 @@ def apply_posthoc_calibration_seg(
             cal_module.to("cpu").eval()
             return cal_module
         opt.load_state_dict(checkpoint["opt_state"])
-        sched = checkpoint["scheduler"]
-        sched.optimizer = opt
+        sched.load_state_dict(checkpoint["sched_state"])
         last_epoch = checkpoint["epoch-loss"][-1][0]
         logger.info(
             f"Resuming training from checkpoint {savepath} at epoch {last_epoch + 1}"
@@ -155,7 +154,7 @@ def apply_posthoc_calibration_seg(
         checkpoint["epoch-loss"].append((epoch, epoch_loss))
         checkpoint["model_state"] = cal_module.state_dict()
         checkpoint["opt_state"] = opt.state_dict()
-        checkpoint["scheduler"] = sched
+        checkpoint["sched_state"] = sched.state_dict()
         torch.save(
             checkpoint,
             savepath,

@@ -53,7 +53,7 @@ class HSCLoss(_Loss):
         return logits
 
     def get_pests(self, model_outputs, **kwargs):
-        p_estimates = torch.vmap(rbf_with_pseudo_huber)(model_outputs)
+        p_estimates = 1 - torch.vmap(rbf_with_pseudo_huber)(model_outputs)
         return torch.clamp(p_estimates, HSCLoss.eps, 1 - HSCLoss.eps)
 
 

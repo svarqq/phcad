@@ -35,5 +35,4 @@ if __name__ == "__main__":
         "spectral_oe_cal": args.spectral_cal,
     }
     logging.info(f"Starting segmentation experiment for label {label} of {dname}")
-    print(xargs)
     run_segmentation_experiment(**xargs)

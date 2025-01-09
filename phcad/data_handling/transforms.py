@@ -145,7 +145,7 @@ SEG_TRAIN_TRANSFORM_MAP = {
 }
 
 SEG_TEST_TRANSFORM_MAP = {
-    "bce": partial(get_default_test_transform, resize_px=292, crop_px=256),
-    "ssim": partial(get_default_test_transform, resize_px=292, crop_px=256),
-    "fcdd": get_default_test_transform,
+    "bce": partial(get_default_test_transform, resize_px=256, crop_px=256),
+    "ssim": partial(get_default_test_transform, resize_px=256, crop_px=256),
+    "fcdd": partial(get_default_test_transform, resize_px=224, crop_px=224),
 }
