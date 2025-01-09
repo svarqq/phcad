@@ -57,4 +57,4 @@ ANOMALY_SCORES = {
     "ssim": SSIMAnomalyScore,
 }
 
-SEG_ANOMALY_SCORES = {"bce": None, "fcdd": None, "ssim": SSIMAnomalyScore}
+SEG_ANOMALY_SCORES = {"bce": BCEAnomalyScore(), "fcdd": None, "ssim": SSIMAnomalyScore}

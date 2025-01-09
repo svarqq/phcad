@@ -14,8 +14,8 @@ from phcad.data_handling.utils import (
 )
 from phcad.data_handling.spectral_natural_images import SpectralNaturalImages
 from phcad.data_handling.transforms import (
-    TRAIN_TRANSFORM_MAP,
-    TEST_TRANSFORM_MAP,
+    SEG_TRAIN_TRANSFORM_MAP,
+    SEG_TEST_TRANSFORM_MAP,
     generic_norm_transform,
     label_to_one,
     label_to_zero,
@@ -51,10 +51,6 @@ def run_segmentation_experiment(
             f"spectral_oe_train can't be true for unsupervised loss {loss_name}"
         )
 
-    transform_and_model_identifier = dataset_name
-    if dataset_name != "fmnist" and dataset_name != "cifar10" and loss_name == "ssim":
-        transform_and_model_identifier += "-ae"
-
     if loss_name == "ssim":
         base_loss = base_loss(reduce=False, win_size=11, pad=True)
 
@@ -79,10 +75,10 @@ def run_segmentation_experiment(
     flip = True
     if "mvtec" in dataset_name and label in MVTEC_LABELS_NOFLIP:
         flip = False
-    train_transform_full = TRAIN_TRANSFORM_MAP[transform_and_model_identifier](
+    train_transform_full = SEG_TRAIN_TRANSFORM_MAP[loss_name](
         mean_full, std_full, ae=loss_name == "ssim", flip=flip
     )
-    test_transform_full = TEST_TRANSFORM_MAP[transform_and_model_identifier](
+    test_transform_full = SEG_TEST_TRANSFORM_MAP[loss_name](
         mean_full, std_full, ae=loss_name == "ssim"
     )
 
@@ -100,7 +96,7 @@ def run_segmentation_experiment(
         oe_data_full.dataset.target_transform = (
             label_to_one
             if loss_name == "fcdd"
-            else synthetic_mask(imshape, anomaly_targets=True)
+            else synthetic_mask(imshape[-2:], anomaly_targets=True)
         )
 
     spectral_data = None
@@ -152,10 +148,10 @@ def run_segmentation_experiment(
             train_copy, idcs_savepath=train_cal_splits_dir / f"{basename}-train.json"
         )
         mean_partial, std_partial = mean_std(train_data_partial, ae=loss_name == "ssim")
-        train_transform_partial = TRAIN_TRANSFORM_MAP[transform_and_model_identifier](
+        train_transform_partial = SEG_TRAIN_TRANSFORM_MAP[loss_name](
             mean_partial, std_partial, ae=loss_name == "ssim", flip=flip
         )
-        test_transform_partial = TEST_TRANSFORM_MAP[transform_and_model_identifier](
+        test_transform_partial = SEG_TEST_TRANSFORM_MAP[loss_name](
             mean_partial, std_partial, ae=loss_name == "ssim"
         )
 

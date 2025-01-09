@@ -14,7 +14,7 @@ MODEL_MAP = {
 }
 
 SEG_MODEL_MAP = {
-    "bce": autoencoder(with_skip_connections=True),
+    "bce": autoencoder(unet=True),
     "fcdd": fcdd.FCDD(),
     "ssim": autoencoder(),
 }

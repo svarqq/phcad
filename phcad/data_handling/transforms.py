@@ -137,3 +137,15 @@ TEST_TRANSFORM_MAP = {
     "mvtec": get_default_test_transform,
     "mvtec-ae": partial(get_default_test_transform, resize_px=292, crop_px=256),
 }
+
+SEG_TRAIN_TRANSFORM_MAP = {
+    "bce": partial(get_default_train_transform, resize_px=292, crop_px=256),
+    "ssim": partial(get_default_train_transform, resize_px=292, crop_px=256),
+    "fcdd": get_default_train_transform,
+}
+
+SEG_TEST_TRANSFORM_MAP = {
+    "bce": partial(get_default_test_transform, resize_px=292, crop_px=256),
+    "ssim": partial(get_default_test_transform, resize_px=292, crop_px=256),
+    "fcdd": get_default_test_transform,
+}

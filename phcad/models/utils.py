@@ -5,7 +5,7 @@ from torch import nn
 from phcad.models.layers import LinearActivation
 
 
-def construct_decoder(encoder, bias=True, eps=1e-05):
+def construct_decoder(encoder, unet=False, bias=True, eps=1e-05):
     decoder = OrderedDict()
     encoder_children = list(encoder.named_children())
 
@@ -22,6 +22,9 @@ def construct_decoder(encoder, bias=True, eps=1e-05):
                         padding = child.padding
                     except AttributeError:
                         pass
+
+            if i == len(encoder_children) - 1 and unet:
+                out_channels = 1
             tconv = nn.ConvTranspose2d(
                 in_channels,
                 out_channels,

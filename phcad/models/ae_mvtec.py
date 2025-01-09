@@ -8,13 +8,13 @@ from phcad.models.utils import construct_decoder
 
 class AEMvTec(nn.Module):
     # The autoencoder used for objects in the mvtec paper
-    def __init__(self, with_skip_connections=False, **kwargs):
+    def __init__(self, unet=False, **kwargs):
         super(AEMvTec, self).__init__()
         self.phcal = False
-        self.with_skip_connections = with_skip_connections
+        self.unet = unet
         self.encoder_skip_layernums = [0, 3, 5, 6, 7, 8]
 
-        if with_skip_connections:
+        if unet:
             # U-Net style with BCE
             nch = 3
         else:
@@ -71,13 +71,13 @@ class AEMvTec(nn.Module):
             nn.Conv2d(32, 100, 8, stride=1),
         )
         encoder = nn.Sequential(layers)
-        decoder = construct_decoder(encoder)
+        decoder = construct_decoder(encoder, unet=unet)
         self.layers = nn.Sequential(
             OrderedDict((("encoder", encoder), ("decoder", decoder)))
         )
 
     def forward(self, x):
-        if not self.with_skip_connections:
+        if not self.unet:
             return self.layers(x)
         else:
             encoder_outputs = [0] * len(self.layers.encoder)
@@ -94,7 +94,7 @@ class AEMvTec(nn.Module):
                     x = layer(x + encoder_outputs[corresponding_encoder_layernum])
                 else:
                     x = layer(x)
-            return x
+            return x.squeeze(-3)
 
     def prepare_calibration_network(self):
         if self.phcal:
