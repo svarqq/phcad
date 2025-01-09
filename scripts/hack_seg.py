@@ -15,14 +15,17 @@ from phcad.data_handling.mvtec_mpdd import MVTecMPDD
 from phcad.data_handling.utils import get_dataset, get_train_cal_splits
 from phcad.data_handling.constants import CIFAR10_LABELS, FMNIST_LABELS
 from phcad.experiments.constants import EXPDIR
-from phcad.experiments.onevall import run_onevall
+from phcad.experiments.segmentation import run_segmentation_experiment
 from phcad.models.layers import PlattCal
 
 
 if __name__ == "__main__":
     spec_oe_train = False
     spec_oe_cal = False
-    run_onevall("mpdd", "bracket_black", "ssim", spec_oe_train, spec_oe_cal)
+
+    run_segmentation_experiment(
+        "mpdd", "bracket_black", "ssim", spec_oe_train, spec_oe_cal
+    )
 
     # wrn_open = wrn18.WideResNet18()
     # wrn_clf = wrn18.WideResNet18(clf=True)
