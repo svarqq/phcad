@@ -25,7 +25,7 @@ def train(
     if savepath.exists():
         checkpoint = torch.load(savepath, map_location="cpu", weights_only=False)
         net.load_state_dict(checkpoint["model_state"])
-        if len(checkpoint["epoch-loss"]) == epochs:
+        if len(checkpoint["epoch-loss"]) >= epochs:
             logger.info(
                 f"Training already completed, returning saved model from {savepath}"
             )
@@ -33,6 +33,7 @@ def train(
             return net
         opt.load_state_dict(checkpoint["opt_state"])
         sched = checkpoint["scheduler"]
+        sched.optimizer = opt
         last_epoch = checkpoint["epoch-loss"][-1][0]
         logger.info(
             f"Resuming training from checkpoint {savepath} at epoch {last_epoch + 1}"
