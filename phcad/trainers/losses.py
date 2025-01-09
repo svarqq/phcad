@@ -9,7 +9,6 @@ from phcad.metrics import (
     ssim,
     hypersphere_metric,
     rbf_with_pseudo_huber,
-    pseudo_huber_score,
 )
 
 
@@ -98,8 +97,6 @@ class SSIMLoss(_Loss):
             return p.mean(self.px_dims)
         else:
             return p
-
-        return self.get_logits(model_inputs, model_outputs, **kwargs) / 2
 
 
 LOSS_MAP = {
