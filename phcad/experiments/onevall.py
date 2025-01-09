@@ -402,7 +402,9 @@ def run_onevall(
         )
         # Test - normal
         results_path = results_dir / f"{beta_pre}.json"
-        inputs_to_anomaly_score_beta = lambda inputs: bm(inputs_to_pests_fn(inputs))
+        inputs_to_anomaly_score_beta = lambda inputs: F.sigmoid(
+            bm(inputs_to_pests_fn(inputs))
+        )  # Note bm outputs logits
         modules_beta = modules_phcal + [bm]
         evaluate_thresholding(
             inputs_to_anomaly_score_beta, test_loader_ph, modules_beta, results_path
