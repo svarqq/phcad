@@ -5,11 +5,9 @@ import torch
 import torch.nn.functional as F
 from torchvision import models
 
-import matplotlib.pyplot as plt
-
 
 class FCDD(torch.nn.Module):
-    def __init__(self, input_2dshape):
+    def __init__(self):
         super(FCDD, self).__init__()
         vgg11_base = models.vgg11_bn(weights="DEFAULT").features[:-8]
         vgg11_base[:15].requires_grad_(False)
