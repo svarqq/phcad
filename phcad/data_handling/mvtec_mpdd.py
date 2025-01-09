@@ -108,7 +108,7 @@ class MVTecMPDD(VisionDataset):
                 )
             ).squeeze()
         else:
-            mask = torch.zeros(img.size)
+            mask = torch.zeros(img.size)  # In-distribution mask
 
         if self.transform is not None:
             img = self.transform(img)

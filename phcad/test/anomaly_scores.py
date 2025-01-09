@@ -35,15 +35,16 @@ class HSCAnomalyScore(torch.nn.Module):
 
 
 class SSIMAnomalyScore(torch.nn.Module):
-    def __init__(self, **ssim_args):
+    def __init__(self, reduce=True, **ssim_args):
         super(SSIMAnomalyScore, self).__init__()
         self.f = torch.vmap(partial(ssim, **ssim_args))
+        self.reduce = reduce
 
-    def forward(self, model_inputs, model_outputs, reduce=True):
+    def forward(self, model_inputs, model_outputs):
         ch_dim = -3
         px_dims = (-1, -2)
         ssim_vals = self.f(model_inputs, model_outputs).mean(ch_dim)
-        if reduce:
+        if self.reduce:
             return 1 - ssim_vals.mean(px_dims)
         else:
             return 1 - ssim_vals
@@ -55,3 +56,5 @@ ANOMALY_SCORES = {
     "hsc": HSCAnomalyScore(),
     "ssim": SSIMAnomalyScore,
 }
+
+SEG_ANOMALY_SCORES = {"bce": None, "fcdd": None, "ssim": SSIMAnomalyScore}

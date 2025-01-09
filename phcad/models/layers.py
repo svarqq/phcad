@@ -13,16 +13,16 @@ class PlattCal(torch.nn.Module):
         return logits / self.temperature + self.bias
 
 
-class PerPixelPlattCal(torch.nn.Module):
+class PerPixelPlatt(torch.nn.Module):
     def __init__(self, wh_shape):
-        super(PerPixelPlattCal, self).__init__()
-        self.temperature = torch.nn.Parameter(torch.ones(wh_shape))
-        self.bias = torch.nn.Parameter(torch.zeros(wh_shape))
-        torch.nn.init.normal_(self.temperature, mead=1, std=0.1)
+        super(PerPixelPlatt, self).__init__()
+        self.temperature = torch.nn.Parameter(torch.empty(wh_shape))
+        self.bias = torch.nn.Parameter(torch.empty(wh_shape))
+        torch.nn.init.normal_(self.temperature, mean=1, std=0.1)
         torch.nn.init.normal_(self.bias, mean=0, std=0.1)
 
     def forward(self, logits):
-        return torch.einsum("ijk, jk -> ijk", logits, 1 / self.temperature) + self.bias
+        return torch.mul(logits, 1 / self.temperature) + self.bias
 
 
 class BetaCal(torch.nn.Module):
@@ -43,6 +43,29 @@ class BetaCal(torch.nn.Module):
         s1 = torch.log(prob_estimates)
         s2 = -torch.log(1 - prob_estimates)
         logits = a * s1 + b * s2 + self.c
+        return logits
+
+
+class PerPixelBeta(torch.nn.Module):
+    eps = 1e-4
+
+    def __init__(self, wh_shape):
+        super(PerPixelBeta, self).__init__()
+        self.a = torch.nn.Parameter(torch.empty(wh_shape))
+        self.b = torch.nn.Parameter(torch.empty(wh_shape))
+        self.c = torch.nn.Parameter(torch.empty(wh_shape))
+        torch.nn.init.normal_(self.a, mean=1, std=0.1)
+        torch.nn.init.normal_(self.b, mean=1, std=0.1)
+        torch.nn.init.normal_(self.c, mean=0, std=0.1)
+
+    def forward(self, prob_estimates):
+        a, b = torch.clamp(self.a, 0), torch.clamp(self.b, 0)
+        prob_estimates = torch.clamp(
+            prob_estimates, PerPixelBeta.eps, 1 - PerPixelBeta.eps
+        )
+        s1 = torch.log(prob_estimates)
+        s2 = -torch.log(1 - prob_estimates)
+        logits = torch.mul(a, s1) + torch.mul(b, s2) + self.c
         return logits
 
 

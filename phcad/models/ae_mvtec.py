@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+import torch
 from torch import nn
 
 from phcad.models.utils import construct_decoder
@@ -7,13 +8,22 @@ from phcad.models.utils import construct_decoder
 
 class AEMvTec(nn.Module):
     # The autoencoder used for objects in the mvtec paper
-    def __init__(self, **kwargs):
+    def __init__(self, with_skip_connections=False, **kwargs):
         super(AEMvTec, self).__init__()
         self.phcal = False
+        self.with_skip_connections = with_skip_connections
+        self.encoder_skip_layernums = [0, 3, 5, 6, 7, 8]
+
+        if with_skip_connections:
+            # U-Net style with BCE
+            nch = 3
+        else:
+            # Vanilla autoencoder with SSIM
+            nch = 1
 
         layers = OrderedDict()
         layers["conv1"] = nn.Sequential(
-            nn.Conv2d(1, 16, 4, stride=2, padding=1),
+            nn.Conv2d(nch, 16, 4, stride=2, padding=1),
             nn.BatchNorm2d(16),
             nn.LeakyReLU(0.2),
         )
@@ -67,7 +77,24 @@ class AEMvTec(nn.Module):
         )
 
     def forward(self, x):
-        return self.layers(x)
+        if not self.with_skip_connections:
+            return self.layers(x)
+        else:
+            encoder_outputs = [0] * len(self.layers.encoder)
+            for layernum, layer in enumerate(self.layers.encoder):
+                x = layer(x)
+                if layernum in self.encoder_skip_layernums:
+                    encoder_outputs[layernum] = x
+            for layernum, layer in enumerate(self.layers.decoder):
+                corresponding_encoder_layernum = len(self.layers.decoder) - layernum - 1
+                add_encoder_outputs = (
+                    corresponding_encoder_layernum in self.encoder_skip_layernums
+                )
+                if add_encoder_outputs:
+                    x = layer(x + encoder_outputs[corresponding_encoder_layernum])
+                else:
+                    x = layer(x)
+            return x
 
     def prepare_calibration_network(self):
         if self.phcal:

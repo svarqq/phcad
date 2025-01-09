@@ -4,7 +4,7 @@ import torch
 from torch.optim import LBFGS
 import torch.nn.functional as F
 
-from phcad.models.layers import PlattCal, BetaCal
+from phcad.models.layers import PlattCal, PerPixelPlatt, BetaCal, PerPixelBeta
 
 logger = logging.getLogger(__name__)
 
@@ -79,4 +79,90 @@ def apply_posthoc_calibration(
 
     if savepath:
         torch.save(cal_module.state_dict(), savepath)
+    return cal_module
+
+
+def apply_posthoc_calibration_seg(
+    cal_type,
+    inputs_to_val_to_cal,  # logits for platt, probability estimates for beta
+    dataloader,
+    epochs,
+    opt,
+    sched,
+    wh_shape,
+    modules_in_fn=[],
+    savepath=None,
+    device=None,
+):
+    if cal_type == "platt":
+        cal_module = PerPixelPlatt(wh_shape)
+    elif cal_type == "beta":
+        cal_module = PerPixelBeta(wh_shape)
+    else:
+        raise ValueError('Argument for cal_type must be one of ["platt", "beta"]')
+    device = "cuda" if (not device and torch.cuda.is_available) else "cpu"
+    cal_module.to(device)
+    opt = opt(cal_module.parameters())
+    sched = sched(opt)
+
+    if savepath.exists():
+        checkpoint = torch.load(savepath, map_location="cpu", weights_only=False)
+        cal_module.load_state_dict(checkpoint["model_state"])
+        if len(checkpoint["epoch-loss"]) >= epochs:
+            logger.info(
+                f"Training already completed, returning saved model from {savepath}"
+            )
+            cal_module.to("cpu").eval()
+            return cal_module
+        opt.load_state_dict(checkpoint["opt_state"])
+        sched = checkpoint["scheduler"]
+        sched.optimizer = opt
+        last_epoch = checkpoint["epoch-loss"][-1][0]
+        logger.info(
+            f"Resuming training from checkpoint {savepath} at epoch {last_epoch + 1}"
+        )
+    else:
+        logger.info(f"Training started. Checkpoint path: {savepath}")
+        last_epoch = 0
+        checkpoint = {"epoch-loss": []}
+
+    for module in modules_in_fn:
+        module.eval()
+        module.to(device)
+    cal_module.train()
+    for epoch in range(last_epoch + 1, epochs + 1):
+        n_samps, total_loss = 0, 0
+        for n_batch, data in enumerate(dataloader):
+            imgs, target_masks = data
+            with torch.device(device), torch.no_grad():
+                imgs = imgs.to(device)
+                target_masks = target_masks.to(device)
+                opt.zero_grad()
+                vals_to_cal = inputs_to_val_to_cal(imgs)
+                with torch.enable_grad():
+                    new_estimates = cal_module(vals_to_cal)
+                    loss = F.binary_cross_entropy_with_logits(
+                        new_estimates, target_masks
+                    )
+                    loss.backward()
+                    opt.step()
+
+            n_samps += len(imgs)
+            total_loss += loss.item() * len(imgs)
+        sched.step()
+
+        epoch_loss = total_loss / n_samps
+        checkpoint["epoch-loss"].append((epoch, epoch_loss))
+        checkpoint["model_state"] = cal_module.state_dict()
+        checkpoint["opt_state"] = opt.state_dict()
+        checkpoint["scheduler"] = sched
+        torch.save(
+            checkpoint,
+            savepath,
+        )
+        logger.info(f"Completed epoch {epoch}")
+
+    for module in modules_in_fn:
+        module.to("cpu")
+    cal_module.to("cpu").eval()
     return cal_module

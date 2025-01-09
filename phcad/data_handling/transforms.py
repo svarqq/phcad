@@ -6,6 +6,12 @@ import torchvision.transforms.v2 as v2
 label_to_zero = v2.Lambda(lambda x: torch.tensor(0, dtype=torch.get_default_dtype()))
 label_to_one = v2.Lambda(lambda x: torch.tensor(1, dtype=torch.get_default_dtype()))
 
+
+def synthetic_mask(img_wh, anomaly_targets=False):
+    func = torch.ones if anomaly_targets else torch.zeros
+    return v2.Lambda(lambda x: func(img_wh, dtype=torch.get_default_dtype()))
+
+
 mask_to_class = v2.Lambda(
     lambda mask: torch.tensor(0, dtype=torch.get_default_dtype())
     if torch.all(mask == 0)

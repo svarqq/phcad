@@ -45,6 +45,9 @@ class SpectralNaturalImages(Dataset):
             im = self.transform(im)
         return im, target
 
+    def switch_target_type(self):
+        self.segmentation_targets = not self.segmentation_targets
+
     def generate_static_data(self):
         self.ims = [
             generate_natural_image_from_spectrum(self.imshape[-1], self.imshape[0])
