@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from phcad.metrics import (
     ssim,
     hypersphere_metric,
+    fcdd_anomaly_heatmap,
     rbf_with_pseudo_huber,
 )
 
@@ -29,14 +30,6 @@ class DSVDDLoss(_Loss):
         return F.sigmoid(self.get_logits(model_outputs))
 
 
-class FCDDLoss(_Loss):
-    def __init__(self):
-        super(FCDDLoss, self).__init__()
-
-    def forward(self, model_outputs, **kwargs):
-        pass
-
-
 class HSCLoss(_Loss):
     eps = 1e-4
 
@@ -48,13 +41,42 @@ class HSCLoss(_Loss):
         return F.binary_cross_entropy(p_estimates, labels)
 
     def get_logits(self, model_outputs, **kwargs):
-        p = self.get_pests(model_outputs)
+        p = torch.clamp(self.get_pests(model_outputs), HSCLoss.eps, 1 - HSCLoss.eps)
         logits = torch.log(p) - torch.log(1 - p)
         return logits
 
     def get_pests(self, model_outputs, **kwargs):
         p_estimates = 1 - torch.vmap(rbf_with_pseudo_huber)(model_outputs)
-        return torch.clamp(p_estimates, HSCLoss.eps, 1 - HSCLoss.eps)
+        return p_estimates
+
+
+class FCDDLoss(_Loss):
+    eps = 1e-4
+
+    def __init__(self, receptive_upsample_module):
+        super(FCDDLoss, self).__init__()
+        self.f = torch.vmap(fcdd_anomaly_heatmap)
+        self.receptive_upsample = receptive_upsample_module
+
+    def forward(self, model_outputs, labels, **kwargs):
+        data_idcs = list(range(1, model_outputs.dim()))
+        heatmaps = self.f(model_outputs).mean(data_idcs)
+        pests_train = 1 - torch.exp(-heatmaps)
+        return F.binary_cross_entropy(pests_train, labels)
+
+    def get_logits(self, model_outputs, **kwargs):
+        p = torch.clamp(
+            self.get_pests(model_outputs, self.receptive_upsample_module),
+            FCDDLoss.eps,
+            1 - FCDDLoss.eps,
+        )
+        logits = torch.log(p) - torch.log(1 - p)
+        return logits
+
+    def get_pests(self, model_outputs, **kwargs):
+        upscaled_heatmaps = self.receptive_upsample_module(self.f(model_outputs))
+        pests = 1 - torch.exp(-upscaled_heatmaps)
+        return pests
 
 
 class CompositeBCE(_Loss):
@@ -106,4 +128,4 @@ LOSS_MAP = {
     "ssim": SSIMLoss,
 }
 
-SEG_LOSS_MAP = {"bce": CompositeBCE(), "fcdd": None, "ssim": SSIMLoss}
+SEG_LOSS_MAP = {"bce": CompositeBCE(), "fcdd": FCDDLoss, "ssim": SSIMLoss}

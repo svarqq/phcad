@@ -4,7 +4,7 @@ import torch
 from torch.nn.parameter import Buffer
 import torch.nn.functional as F
 
-from phcad.metrics import hypersphere_metric, ssim
+from phcad.metrics import hypersphere_metric, fcdd_anomaly_heatmap, ssim
 from phcad.trainers import losses
 
 
@@ -34,6 +34,16 @@ class HSCAnomalyScore(torch.nn.Module):
         return losses.HSCLoss().get_pests(model_outputs)
 
 
+class FCDDAnomalyScore(torch.nn.Module):
+    def __init__(self, receptive_upsample_module):
+        super(FCDDAnomalyScore, self).__init__()
+        self.upsamp = receptive_upsample_module
+
+    def forward(self, model_outputs, **kwargs):
+        heatmaps = torch.vmap(fcdd_anomaly_heatmap)(model_outputs)
+        return self.upsamp(heatmaps)
+
+
 class SSIMAnomalyScore(torch.nn.Module):
     def __init__(self, reduce=True, **ssim_args):
         super(SSIMAnomalyScore, self).__init__()
@@ -57,4 +67,8 @@ ANOMALY_SCORES = {
     "ssim": SSIMAnomalyScore,
 }
 
-SEG_ANOMALY_SCORES = {"bce": BCEAnomalyScore(), "fcdd": None, "ssim": SSIMAnomalyScore}
+SEG_ANOMALY_SCORES = {
+    "bce": BCEAnomalyScore(),
+    "fcdd": FCDDAnomalyScore,
+    "ssim": SSIMAnomalyScore,
+}

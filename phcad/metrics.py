@@ -29,10 +29,18 @@ def hypersphere_metric(features, center):
     return ((features - center) ** 2).sum()
 
 
-def pseudo_huber_score(features):
-    return torch.sqrt((features**2).sum() + 1) - 1
+def pseudo_huber_score(features, reduce=True):
+    normsq = features**2
+    if reduce:
+        return torch.sqrt(normsq.sum() + 1) - 1
+    else:
+        return torch.sqrt(normsq + 1) - 1
 
 
 def rbf_with_pseudo_huber(features):
     pseudo_huber = pseudo_huber_score(features)
     return torch.exp(-pseudo_huber)
+
+
+def fcdd_anomaly_heatmap(features):
+    return pseudo_huber_score(features, reduce=False)

@@ -3,6 +3,7 @@ from math import prod
 
 import torch
 import torch.nn.functional as F
+from torch.nn.parameter import Buffer
 from torchvision import models
 
 
@@ -12,6 +13,26 @@ class FCDD(torch.nn.Module):
         vgg11_base = models.vgg11_bn(weights="DEFAULT").features[:-8]
         vgg11_base[:15].requires_grad_(False)
 
+        self.layers = torch.nn.Sequential(
+            OrderedDict(
+                (
+                    ("vgg11_bn_base", vgg11_base),
+                    ("final_conv", torch.nn.Conv2d(512, 1, 1)),
+                )
+            )
+        )
+
+    def forward(self, x):
+        return self.layers(x)
+
+
+class ReceptiveUpsample(torch.nn.Module):
+    def __init__(self, std=14):
+        super(ReceptiveUpsample, self).__init__()
+
+        # See https://distill.pub/2019/computing-receptive-fields/#solving-receptive-field-size
+        # for computing effective receptive field values
+        vgg11_base = models.vgg11_bn(weights="DEFAULT").features[:-8]
         ksizes, strides, paddings = [], [], []
         for module in vgg11_base:
             try:
@@ -33,36 +54,13 @@ class FCDD(torch.nn.Module):
             except AttributeError:
                 pass
 
-        self.layers = torch.nn.Sequential(
-            OrderedDict(
-                (
-                    ("vgg11_bn_base", vgg11_base),
-                    ("final_conv", torch.nn.Conv2d(512, 1, 1)),
-                    (
-                        "receptive_upsample",
-                        ReceptiveUpsample(ksizes, strides, paddings),
-                    ),
-                )
-            )
-        )
-
-    def forward(self, x):
-        return self.layers(x)
-
-
-class ReceptiveUpsample(torch.nn.Module):
-    def __init__(self, kernel_sizes, strides, paddings, std=14):
-        # See https://distill.pub/2019/computing-receptive-fields/#solving-receptive-field-size
-        # for computing effective receptive field values
-        super(ReceptiveUpsample, self).__init__()
         stride_products = [1] + [prod(strides[:i]) for i in range(1, len(strides))]
         self.effective_padding = sum(
             [pad * sp for pad, sp in zip(paddings, stride_products)]
         )
         self.effective_stride = prod(strides)
         self.effective_size = (
-            sum([(k_sz - 1) * sp for k_sz, sp in zip(kernel_sizes, stride_products)])
-            + 1
+            sum([(k_sz - 1) * sp for k_sz, sp in zip(ksizes, stride_products)]) + 1
         )
 
         coordinates = torch.stack(
@@ -82,7 +80,7 @@ class ReceptiveUpsample(torch.nn.Module):
             ),
             0,
         )
-        self.weight = gauss_weight
+        self.weight = Buffer(gauss_weight)
 
     def forward(self, x):
         return F.conv_transpose2d(
@@ -91,9 +89,3 @@ class ReceptiveUpsample(torch.nn.Module):
             stride=self.effective_stride,
             padding=self.effective_padding,
         )
-
-
-if __name__ == "__main__":
-    model = FCDD((224, 224))
-    breakpoint()
-    print(model)
