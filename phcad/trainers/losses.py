@@ -74,7 +74,7 @@ class FCDDLoss(_Loss):
         return logits
 
     def get_pests(self, model_outputs, **kwargs):
-        upscaled_heatmaps = self.upsample(self.f(model_outputs))
+        upscaled_heatmaps = self.upsample(self.f(model_outputs)).squeeze(-3)
         pests = 1 - torch.exp(-upscaled_heatmaps)
         return pests
 

@@ -37,11 +37,11 @@ class HSCAnomalyScore(torch.nn.Module):
 class FCDDAnomalyScore(torch.nn.Module):
     def __init__(self, receptive_upsample_module):
         super(FCDDAnomalyScore, self).__init__()
-        self.upsamp = receptive_upsample_module
+        self.upsample = receptive_upsample_module
 
     def forward(self, model_outputs, **kwargs):
         heatmaps = torch.vmap(fcdd_anomaly_heatmap)(model_outputs)
-        return self.upsamp(heatmaps)
+        return self.upsample(heatmaps).squeeze(-3)
 
 
 class SSIMAnomalyScore(torch.nn.Module):

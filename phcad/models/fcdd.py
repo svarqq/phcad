@@ -23,7 +23,7 @@ class FCDD(torch.nn.Module):
         )
 
     def forward(self, x):
-        return self.layers(x).squeeze(-3)
+        return self.layers(x)
 
 
 class ReceptiveUpsample(torch.nn.Module):
