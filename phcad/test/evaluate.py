@@ -14,6 +14,7 @@ from sklearn.metrics import (
 from anomalib.metrics import AUROC, AUPRO
 
 from phcad.data_handling.transforms import mask_to_class
+from phcad.test.utils import check_results
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +27,12 @@ def evaluate_thresholding(
     device=None,
 ):
     if savepath and savepath.exists():
-        logger.info(
-            f"Results already saved to {savepath}, delete if needed to run again"
-        )
-        return
+        results_generated = check_results(savepath)
+        if results_generated:
+            return
     logger.info(f"Getting results, saving to {savepath}")
     device = "cuda" if not device and torch.cuda.is_available else "cpu"
+
     for module in modules:
         module.eval()
         module.to(device)
@@ -78,10 +79,9 @@ def evaluate_thresholding_perturbation(
     eps=0.0014,
 ):
     if savepath and savepath.exists():
-        logger.info(
-            f"Results already saved to {savepath}, delete if needed to run again"
-        )
-        return
+        results_generated = check_results(savepath)
+        if results_generated:
+            return
     logger.info(f"Getting results with perturbation, saving to {savepath}")
     device = "cuda" if not device and torch.cuda.is_available else "cpu"
 
@@ -140,17 +140,12 @@ def evaluate_thresholding_segmentation(
     gen_aupro=True,
 ):
     if savepath and savepath.exists():
-        with open(savepath, "r") as f:
-            results = json.loads(f.read())
-        auroc_completed = "roc" in results
-        aupro_completed = gen_aupro in results if gen_aupro else True
-        if auroc_completed and aupro_completed:
-            logger.info(
-                f"Results already saved to {savepath}, delete if needed to run again"
-            )
+        results_generated = check_results(savepath, check_aupro=gen_aupro)
+        if results_generated:
             return
     logger.info(f"Getting results, saving to {savepath}")
     device = "cuda" if not device and torch.cuda.is_available else "cpu"
+
     for module in modules:
         module.eval()
         module.to(device)
@@ -208,14 +203,8 @@ def evaluate_thresholding_segmentation_perturbation(
     gen_aupro=True,
 ):
     if savepath and savepath.exists():
-        with open(savepath, "r") as f:
-            results = json.loads(f.read())
-        auroc_completed = "roc" in results
-        aupro_completed = gen_aupro in results if gen_aupro else True
-        if auroc_completed and aupro_completed:
-            logger.info(
-                f"Results already saved to {savepath}, delete if needed to run again"
-            )
+        results_generated = check_results(savepath, check_aupro=gen_aupro)
+        if results_generated:
             return
     logger.info(f"Getting results, saving to {savepath}")
     device = "cuda" if not device and torch.cuda.is_available else "cpu"
