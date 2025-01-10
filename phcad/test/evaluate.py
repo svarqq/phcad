@@ -154,11 +154,11 @@ def evaluate_thresholding_segmentation(
         with torch.device(device), torch.no_grad():
             data = data.to(device)
             batch_maps = inputs_to_anomaly_map(data)
-            rsz_masks = F.resize(batch_target_masks, data.shape[-2:]).to(device)
+            rsz_masks = F.resize(batch_target_masks, data.shape[-2:])
             rsz_masks[rsz_masks >= 0.5] = 1
             rsz_masks[rsz_masks < 0.5] = 0
-            auroc_obj.update(batch_maps, rsz_masks.to(torch.long))
-            aupro_obj.update(batch_maps, rsz_masks.to(torch.long))
+        auroc_obj.update(batch_maps.to("cpu"), rsz_masks.to(torch.long).to("cpu"))
+        aupro_obj.update(batch_maps.to("cpu"), rsz_masks.to(torch.long).to("cpu"))
     for module in modules:
         module.to("cpu")
 
@@ -236,9 +236,9 @@ def evaluate_thresholding_segmentation_perturbation(
             perturbations = norm(signs * eps)
 
             perturbed_data = data - perturbations
-            batch_maps = inputs_to_anomaly_map(perturbed_data).to("cpu")
-            auroc_obj.update(batch_maps, rsz_masks.to(torch.long).to("cpu"))
-            aupro_obj.update(batch_maps, rsz_masks.to(torch.long).to("cpu"))
+            batch_maps = inputs_to_anomaly_map(perturbed_data)
+        auroc_obj.update(batch_maps.to("cpu"), rsz_masks.to(torch.long).to("cpu"))
+        aupro_obj.update(batch_maps.to("cpu"), rsz_masks.to(torch.long).to("cpu"))
     for module in modules:
         module.to("cpu")
 
