@@ -323,8 +323,8 @@ def run_segmentation_experiment(
             inputs_to_loss_platt,
             std_partial,
             test_loader_ph,
-            modules_platt,
-            results_path,
+            modules=modules_platt,
+            savepath=results_path,
             gen_aupro=False,
             device="cpu",
         )
@@ -353,8 +353,8 @@ def run_segmentation_experiment(
         evaluate_thresholding_segmentation(
             inputs_to_anomaly_score_beta,
             test_loader_ph,
-            modules_beta,
-            results_path,
+            modules=modules_beta,
+            savepath=results_path,
             gen_aupro=False,
         )
 
@@ -368,8 +368,8 @@ def run_segmentation_experiment(
             inputs_to_loss_beta,
             std_partial,
             test_loader_ph,
-            modules_beta,
-            results_path,
+            modules=modules_beta,
+            savepath=results_path,
             gen_aupro=False,
             device="cpu",
         )
@@ -406,8 +406,8 @@ def run_segmentation_experiment(
         evaluate_thresholding_segmentation(
             inputs_to_anomaly_score_full,
             test_loader,
-            modules_full,
-            results_path,
+            modules=modules_full,
+            savepath=results_path,
             gen_aupro=False,
         )
         # Test full - with input perturbation
@@ -421,9 +421,9 @@ def run_segmentation_experiment(
             inputs_to_loss_full,
             std_full,
             test_loader,
-            modules_pert_full,
-            results_path,
             detection_targets_for_loss=loss_name == "fcdd",
+            modules=modules_pert_full,
+            savepath=results_path,
             gen_aupro=False,
             device="cpu",
         )
