@@ -229,12 +229,13 @@ def evaluate_thresholding_segmentation_perturbation(
     for data, batch_target_masks in test_loader:
         with torch.device(device), torch.no_grad():
             data = data.to(device)
+
+            rsz_masks = F.resize(batch_target_masks, data.shape[-2:])
+            rsz_masks[rsz_masks >= 0.5] = 1
+            rsz_masks[rsz_masks < 0.5] = 0
             if detection_targets_for_loss:
                 targets = torch.stack(list(map(mask_to_class, batch_target_masks)))
             else:
-                rsz_masks = F.resize(batch_target_masks, data.shape[-2:])
-                rsz_masks[rsz_masks >= 0.5] = 1
-                rsz_masks[rsz_masks < 0.5] = 0
                 targets = rsz_masks
             targets = targets.to(device)
 
