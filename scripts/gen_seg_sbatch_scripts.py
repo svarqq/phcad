@@ -37,7 +37,7 @@ def generate_sbatch(
     prefix = """#!/usr/bin/env bash
 #SBATCH --mail-type=ALL
 #SBATCH -t 1-0  # 1 day
-#SBATCH --mem=32G
+#SBATCH --mem=64G
 #SBATCH -N 1
 #SBATCH -n 5
 #SBATCH --cpus-per-task=1
