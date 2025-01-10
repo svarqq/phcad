@@ -13,6 +13,8 @@ from sklearn.metrics import (
 )
 from anomalib.metrics import AUROC, AUPRO
 
+from phcad.data_handling.transforms import mask_to_class
+
 logger = logging.getLogger(__name__)
 
 
@@ -198,6 +200,7 @@ def evaluate_thresholding_segmentation_perturbation(
     inputs_to_loss,
     norm_std,
     test_loader,
+    detection_targets_for_loss=False,
     modules=None,
     savepath=None,
     device=None,
@@ -229,10 +232,15 @@ def evaluate_thresholding_segmentation_perturbation(
             batch_target_masks = batch_target_masks.to(device)
             with torch.enable_grad():
                 data.requires_grad = True
-                rsz_masks = F.resize(batch_target_masks, data.shape[-2:])
-                rsz_masks[rsz_masks >= 0.5] = 1
-                rsz_masks[rsz_masks < 0.5] = 0
-                loss = inputs_to_loss(data, rsz_masks)
+                if detection_targets_for_loss:
+                    targets = torch.vmap(mask_to_class)(batch_target_masks)
+                else:
+                    rsz_masks = F.resize(batch_target_masks, data.shape[-2:])
+                    rsz_masks[rsz_masks >= 0.5] = 1
+                    rsz_masks[rsz_masks < 0.5] = 0
+                    targets = rsz_masks
+
+                loss = inputs_to_loss(data, targets)
                 loss.backward()
             signs = torch.ge(data.grad, 0) * 2 - 1
             perturbations = norm(signs * eps)

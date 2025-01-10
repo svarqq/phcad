@@ -262,6 +262,7 @@ def run_segmentation_experiment(
             inputs_to_loss_partial,
             std_partial,
             test_loader_ph,
+            detection_targets_for_loss=loss_name == "fcdd",
             modules=modules_partial_pert,
             savepath=results_path,
             gen_aupro=False,
@@ -422,6 +423,7 @@ def run_segmentation_experiment(
             test_loader,
             modules_pert_full,
             results_path,
+            detection_targets_for_loss=loss_name == "fcdd",
             gen_aupro=False,
             device="cpu",
         )
