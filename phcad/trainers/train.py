@@ -23,21 +23,37 @@ def train(
 
     savepath = savedir / f"{savename}.pt"
     if savepath.exists():
-        checkpoint = torch.load(savepath, map_location="cpu", weights_only=False)
-        net.load_state_dict(checkpoint["model_state"])
-        if len(checkpoint["epoch-loss"]) >= epochs:
-            logger.info(
-                f"Training already completed, returning saved model from {savepath}"
+        try:
+            checkpoint = torch.load(savepath, map_location="cpu", weights_only=False)
+            if len(checkpoint["epoch-loss"]) >= epochs:
+                net.load_state_dict(checkpoint["model_state"])
+                logger.info(
+                    f"Training already completed, returning saved model from {savepath}"
+                )
+                net.to("cpu").eval()
+                return net
+
+            all_states_present = (
+                "model_state" in checkpoint
+                and "opt_state" in checkpoint
+                and "sched_state" in checkpoint
             )
-            net.to("cpu").eval()
-            return net
-        opt.load_state_dict(checkpoint["opt_state"])
-        sched.load_state_dict(checkpoint["sched_state"])
-        sched.optimizer = opt
-        last_epoch = checkpoint["epoch-loss"][-1][0]
-        logger.info(
-            f"Resuming training from checkpoint {savepath} at epoch {last_epoch + 1}"
-        )
+            assert all_states_present
+
+            net.load_state_dict(checkpoint["model_state"])
+            opt.load_state_dict(checkpoint["opt_state"])
+            sched.load_state_dict(checkpoint["sched_state"])
+            sched.optimizer = opt
+            last_epoch = checkpoint["epoch-loss"][-1][0]
+            logger.info(
+                f"Resuming training from checkpoint {savepath} at epoch {last_epoch + 1}"
+            )
+        except Exception:
+            logger.info(
+                f"Failed to load checkpoint at {savepath}, rerunning training process"
+            )
+            last_epoch = 0
+            checkpoint = {"epoch-loss": []}
     else:
         logger.info(f"Training started. Checkpoint path: {savepath}")
         last_epoch = 0
