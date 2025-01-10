@@ -56,7 +56,7 @@ class FCDDLoss(_Loss):
     def __init__(self, receptive_upsample_module):
         super(FCDDLoss, self).__init__()
         self.f = torch.vmap(fcdd_anomaly_heatmap)
-        self.receptive_upsample = receptive_upsample_module
+        self.upsample = receptive_upsample_module
 
     def forward(self, model_outputs, labels, **kwargs):
         data_idcs = list(range(1, model_outputs.dim()))
@@ -66,7 +66,7 @@ class FCDDLoss(_Loss):
 
     def get_logits(self, model_outputs, **kwargs):
         p = torch.clamp(
-            self.get_pests(model_outputs, self.receptive_upsample_module),
+            self.get_pests(model_outputs),
             FCDDLoss.eps,
             1 - FCDDLoss.eps,
         )
@@ -74,7 +74,7 @@ class FCDDLoss(_Loss):
         return logits
 
     def get_pests(self, model_outputs, **kwargs):
-        upscaled_heatmaps = self.receptive_upsample_module(self.f(model_outputs))
+        upscaled_heatmaps = self.upsample(self.f(model_outputs))
         pests = 1 - torch.exp(-upscaled_heatmaps)
         return pests
 
