@@ -99,12 +99,13 @@ class MVTecMPDD(VisionDataset):
             img = Image.open(f)
             img = img.convert("RGB")
         if maskpath:
-            mask = F.rgb_to_grayscale(
-                F.to_dtype(
-                    read_image(maskpath),
-                    dtype=torch.get_default_dtype(),
-                    scale=True,
-                )
+            with open(maskpath, "rb") as f:
+                mask = Image.open(f)
+                mask = mask.convert("L")
+            mask = F.to_dtype(
+                F.to_image(mask),
+                dtype=torch.get_default_dtype(),
+                scale=True,
             ).squeeze()
             mask[mask >= 0.5] = 1
             mask[mask < 0.5] = 0
