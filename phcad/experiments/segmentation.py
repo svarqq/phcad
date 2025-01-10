@@ -5,6 +5,7 @@ import torch.nn.functional as F
 
 from phcad.experiments.constants import EXPDIR
 from phcad.models.constants import SEG_MODEL_MAP
+from phcad.models.fcdd import ReceptiveUpsample
 from phcad.data_handling.utils import (
     get_dataset,
     get_train_cal_splits,
@@ -51,12 +52,14 @@ def run_segmentation_experiment(
             f"spectral_oe_train can't be true for unsupervised loss {loss_name}"
         )
 
-    if loss_name == "ssim":
-        base_loss = base_loss(reduce=False, win_size=11, pad=True)
-
     anomaly_score = SEG_ANOMALY_SCORES[loss_name]
     if loss_name == "ssim":
+        base_loss = base_loss(reduce=False, win_size=11, pad=True)
         anomaly_score = anomaly_score(reduce=False, win_size=11, pad=True)
+    elif loss_name == "fcdd":
+        receptive_upsample = ReceptiveUpsample()
+        base_loss = base_loss(receptive_upsample)
+        anomaly_score = anomaly_score(receptive_upsample)
 
     # Setup save directories
     exp_dir = EXPDIR / "segmentation" / dataset_name / loss_name
@@ -232,6 +235,7 @@ def run_segmentation_experiment(
             dloader=train_loader_partial,
             savename=partial_pre,
             savedir=model_dir,
+            device="cpu",
         )
 
         # Test partial - normal
@@ -261,6 +265,7 @@ def run_segmentation_experiment(
             modules=modules_partial_pert,
             savepath=results_path,
             gen_aupro=False,
+            device="cpu",
         )
 
         # -------
@@ -320,6 +325,7 @@ def run_segmentation_experiment(
             modules_platt,
             results_path,
             gen_aupro=False,
+            device="cpu",
         )
 
         # Calibrate - Beta
@@ -364,6 +370,7 @@ def run_segmentation_experiment(
             modules_beta,
             results_path,
             gen_aupro=False,
+            device="cpu",
         )
 
         # ---------
@@ -386,6 +393,7 @@ def run_segmentation_experiment(
             dloader=train_loader_full,
             savename=full_pre,
             savedir=model_dir,
+            device="cpu",
         )
         # Test full - normal
         inputs_to_anomaly_score_full = lambda inputs: anomaly_score(
@@ -415,4 +423,5 @@ def run_segmentation_experiment(
             modules_pert_full,
             results_path,
             gen_aupro=False,
+            device="cpu",
         )
