@@ -244,16 +244,13 @@ def run_onevall(
             center_savepath = model_dir / f"{partial_pre}-center.pt"
             center = dsvdd_center(model_partial, train_loader_partial, center_savepath)
             loss_partial = base_loss(center=center)
-            anomaly_score_partial = anomaly_score(center=center)
         else:
             loss_partial = base_loss
-            anomaly_score_partial = anomaly_score
 
         opt, sched, epochs = get_optim_sched_epochs(dataset_name)
         opt = opt(model_partial.parameters())
         sched = sched(opt)
 
-        epochs = 1
         model_partial = train(
             epochs=epochs,
             net=model_partial,
@@ -265,32 +262,7 @@ def run_onevall(
             savedir=model_dir,
         )
 
-        # Test partial - normal
-        results_path = results_dir / f"{partial_pre}.json"
-        inputs_to_anomaly_score_partial = lambda inputs: anomaly_score_partial(
-            model_inputs=inputs, model_outputs=model_partial(inputs)
-        )
-        modules_partial = [model_partial, anomaly_score_partial]
-        evaluate_thresholding(
-            inputs_to_anomaly_score_partial,
-            test_loader_ph,
-            modules_partial,
-            results_path,
-        )
-        # Test partial - input perturbation
-        results_path = results_dir / f"{partial_pre}-perturb.json"
-        inputs_to_loss_partial = lambda inputs, labels: loss_partial(
-            model_inputs=inputs, model_outputs=model_partial(inputs), labels=labels
-        )
-        modules_partial_pert = modules_partial + [loss_partial]
-        evaluate_thresholding_perturbation(
-            inputs_to_anomaly_score_partial,
-            inputs_to_loss_partial,
-            std_partial,
-            test_loader_ph,
-            modules_partial_pert,
-            results_path,
-        )
+        # ---------
 
         # Post-hoc training
         phtrain_pre = f"{partial_pre}-phtrain-{oe_cal_type}"
@@ -305,7 +277,6 @@ def run_onevall(
             opt = opt(model_phtrain.calibration_head.parameters())  # WRN18 hack
         sched = sched(opt)
 
-        epochs = 1
         model_phtrain = train(
             epochs=epochs,
             net=model_phtrain,
@@ -443,7 +414,6 @@ def run_onevall(
         opt = opt(model_full.parameters())
         sched = sched(opt)
 
-        epochs = 1
         model_full = train(
             epochs=epochs,
             net=model_full,

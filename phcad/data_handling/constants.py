@@ -108,3 +108,11 @@ OE_DATASET_MAP = {
     "mvtec": "imagenet21k-minus1k",
     "mpdd": "imagenet21k-minus1k",
 }
+
+DS_TO_LABELS_MAP = {
+    "cifar10": CIFAR10_LABELS,
+    "fmnist": FMNIST_LABELS,
+    "imagenet30": IMAGENET30_LABELS,
+    "mpdd": MPDD_LABELS,
+    "mvtec": MVTEC_LABELS,
+}

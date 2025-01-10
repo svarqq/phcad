@@ -3,7 +3,7 @@ from pathlib import Path
 import argparse
 
 from phcad.trainers.losses import SEG_LOSS_MAP
-from constants import DS_TO_LABELS_MAP, SLURMDIR
+from phcad.data_handling.constants import DS_TO_LABELS_MAP, SLURMDIR
 
 slurm_subdir = SLURMDIR / "segmentation"
 parser = argparse.ArgumentParser()

@@ -225,7 +225,6 @@ def run_segmentation_experiment(
         opt = opt(model_partial.parameters())
         sched = sched(opt)
 
-        epochs = 1
         model_partial = train(
             epochs=epochs,
             net=model_partial,
@@ -235,38 +234,6 @@ def run_segmentation_experiment(
             dloader=train_loader_partial,
             savename=partial_pre,
             savedir=model_dir,
-            device="cpu",
-        )
-
-        # Test partial - normal
-        results_path = results_dir / f"{partial_pre}.json"
-        inputs_to_anomaly_score_partial = lambda inputs: anomaly_score(
-            model_inputs=inputs, model_outputs=model_partial(inputs)
-        )
-        modules_partial = [model_partial, anomaly_score]
-        evaluate_thresholding_segmentation(
-            inputs_to_anomaly_score_partial,
-            test_loader_ph,
-            modules=modules_partial,
-            savepath=results_path,
-            gen_aupro=False,
-        )
-        # Test partial - input perturbation
-        results_path = results_dir / f"{partial_pre}-perturb.json"
-        inputs_to_loss_partial = lambda inputs, labels: base_loss(
-            model_inputs=inputs, model_outputs=model_partial(inputs), labels=labels
-        )
-        modules_partial_pert = modules_partial + [base_loss]
-        evaluate_thresholding_segmentation_perturbation(
-            inputs_to_anomaly_score_partial,
-            inputs_to_loss_partial,
-            std_partial,
-            test_loader_ph,
-            detection_targets_for_loss=loss_name == "fcdd",
-            modules=modules_partial_pert,
-            savepath=results_path,
-            gen_aupro=False,
-            device="cpu",
         )
 
         # -------
@@ -285,7 +252,6 @@ def run_segmentation_experiment(
         # Calibrate - Platt
         platt_pre = f"{partial_pre}-platt-{oe_cal_type}"
         opt, sched, epochs = get_optim_sched_epochs(dataset_name)
-        epochs = 1
         pm = apply_posthoc_calibration_seg(
             "platt",
             inputs_to_logits_fn,
@@ -308,7 +274,6 @@ def run_segmentation_experiment(
             test_loader_ph,
             modules_platt,
             results_path,
-            gen_aupro=False,
         )
 
         # Test - with input perturbation
@@ -325,14 +290,11 @@ def run_segmentation_experiment(
             test_loader_ph,
             modules=modules_platt,
             savepath=results_path,
-            gen_aupro=False,
-            device="cpu",
         )
 
         # Calibrate - Beta
         beta_pre = f"{partial_pre}-beta-{oe_cal_type}"
         opt, sched, epochs = get_optim_sched_epochs(dataset_name)
-        epochs = 1
         bm = apply_posthoc_calibration_seg(
             "beta",
             inputs_to_pests_fn,
@@ -355,7 +317,6 @@ def run_segmentation_experiment(
             test_loader_ph,
             modules=modules_beta,
             savepath=results_path,
-            gen_aupro=False,
         )
 
         # Test - with input perturbation
@@ -370,8 +331,6 @@ def run_segmentation_experiment(
             test_loader_ph,
             modules=modules_beta,
             savepath=results_path,
-            gen_aupro=False,
-            device="cpu",
         )
 
         # ---------
@@ -384,7 +343,6 @@ def run_segmentation_experiment(
         opt = opt(model_full.parameters())
         sched = sched(opt)
 
-        epochs = 1
         model_full = train(
             epochs=epochs,
             net=model_full,
@@ -394,7 +352,6 @@ def run_segmentation_experiment(
             dloader=train_loader_full,
             savename=full_pre,
             savedir=model_dir,
-            device="cpu",
         )
         # Test full - normal
         inputs_to_anomaly_score_full = lambda inputs: anomaly_score(
@@ -408,7 +365,6 @@ def run_segmentation_experiment(
             test_loader,
             modules=modules_full,
             savepath=results_path,
-            gen_aupro=False,
         )
         # Test full - with input perturbation
         results_path = results_dir / f"{full_pre}-perturb.json"
@@ -424,6 +380,4 @@ def run_segmentation_experiment(
             detection_targets_for_loss=loss_name == "fcdd",
             modules=modules_pert_full,
             savepath=results_path,
-            gen_aupro=False,
-            device="cpu",
         )

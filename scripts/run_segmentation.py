@@ -2,7 +2,7 @@ import __init__  # noqa
 import logging
 import argparse
 
-from constants import DS_TO_LABELS_MAP
+from phcad.data_handling.constants import DS_TO_LABELS_MAP
 from phcad.trainers.losses import SEG_LOSS_MAP
 from phcad.experiments.segmentation import run_segmentation_experiment
 
