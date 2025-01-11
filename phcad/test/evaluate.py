@@ -154,7 +154,7 @@ def evaluate_thresholding_segmentation(
         with torch.device(device), torch.no_grad():
             data = data.to(device)
             batch_maps = inputs_to_anomaly_map(data)
-            rsz_pred_maps = F.resize(batch_maps, batch_target_masks[-2:])
+            rsz_pred_maps = F.resize(batch_maps, batch_target_masks[-2:].shape)
         anomaly_scores.append(rsz_pred_maps.to("cpu").detach())
         targets.append(batch_target_masks.to("cpu").detach())
     for module in modules:
@@ -236,7 +236,7 @@ def evaluate_thresholding_segmentation_perturbation(
 
             perturbed_data = data - perturbations
             batch_maps = inputs_to_anomaly_map(perturbed_data)
-            rsz_pred_maps = F.resize(batch_maps, batch_target_masks[-2:])
+            rsz_pred_maps = F.resize(batch_maps, batch_target_masks.shape[-2:])
         anomaly_scores.append(rsz_pred_maps.to("cpu").detach())
         targets.append(batch_target_masks.to("cpu").detach())
     for module in modules:
