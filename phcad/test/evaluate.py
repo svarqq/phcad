@@ -149,27 +149,27 @@ def evaluate_thresholding_segmentation(
     for module in modules:
         module.eval()
         module.to(device)
-    anomaly_scores, targets = [], []
+    aupro_obj, auroc_obj = AUPRO(fpr_limit=0.3), AUROC()
     for data, batch_target_masks in test_loader:
         with torch.device(device), torch.no_grad():
             data = data.to(device)
             batch_maps = inputs_to_anomaly_map(data)
-            rsz_pred_maps = F.resize(batch_maps, batch_target_masks.shape[-2:])
-        anomaly_scores.append(rsz_pred_maps.to("cpu").detach())
-        targets.append(batch_target_masks.to("cpu").detach())
+            rsz_masks = F.resize(batch_target_masks, data.shape[-2:])
+            rsz_masks[rsz_masks >= 0.5] = 1
+            rsz_masks[rsz_masks < 0.5] = 0
+        auroc_obj.update(
+            batch_maps.to("cpu").view(-1), rsz_masks.to(torch.long).to("cpu").view(-1)
+        )
+        aupro_obj.update(batch_maps.to("cpu"), rsz_masks.to(torch.long).to("cpu"))
     for module in modules:
         module.to("cpu")
 
-    anomaly_scores = torch.cat((*anomaly_scores,))
-    targets = torch.cat((*targets,))
-
-    auroc = roc_auc_score(targets.view(-1).numpy(), anomaly_scores.view(-1).numpy())
-    roc = roc_curve(targets.view(-1).numpy(), anomaly_scores.view(-1).numpy())[:2]
+    roc = auroc_obj._compute()
+    auroc = auc(roc[0], roc[1], reorder=True)
     if gen_aupro:
-        aupro_obj = AUPRO()
-        aupro_obj.update(preds=anomaly_scores, target=targets.to(torch.uint8))
         pro = aupro_obj._compute()
-        aupro = aupro_obj.compute()
+        aupro = auc(pro[0], pro[1], reorder=True)
+        aupro /= pro[0][-1]
 
     logger.info(f"AUROC: {auroc}")
     if gen_aupro:
@@ -216,7 +216,7 @@ def evaluate_thresholding_segmentation_perturbation(
         module.eval()
         module.to(device)
         module.requires_grad_(True)
-    anomaly_scores, targets = [], []
+    aupro_obj, auroc_obj = AUPRO(fpr_limit=0.3), AUROC()
     for data, batch_target_masks in test_loader:
         with torch.device(device), torch.no_grad():
             data = data.to(device)
@@ -225,36 +225,33 @@ def evaluate_thresholding_segmentation_perturbation(
             rsz_masks[rsz_masks >= 0.5] = 1
             rsz_masks[rsz_masks < 0.5] = 0
             if detection_targets_for_loss:
-                grad_targets = torch.stack(list(map(mask_to_class, batch_target_masks)))
+                targets = torch.stack(list(map(mask_to_class, batch_target_masks)))
             else:
-                grad_targets = rsz_masks
+                targets = rsz_masks
             targets = targets.to(device)
 
             with torch.enable_grad():
                 data.requires_grad = True
-                loss = inputs_to_loss(data, grad_targets)
+                loss = inputs_to_loss(data, targets)
                 loss.backward()
             signs = torch.ge(data.grad, 0) * 2 - 1
             perturbations = norm(signs * eps)
 
             perturbed_data = data - perturbations
             batch_maps = inputs_to_anomaly_map(perturbed_data)
-            rsz_pred_maps = F.resize(batch_maps, batch_target_masks.shape[-2:])
-        anomaly_scores.append(rsz_pred_maps.to("cpu").detach())
-        targets.append(batch_target_masks.to("cpu").detach())
+        auroc_obj.update(
+            batch_maps.to("cpu").view(-1), rsz_masks.to(torch.long).to("cpu").view(-1)
+        )
+        aupro_obj.update(batch_maps.to("cpu"), rsz_masks.to(torch.long).to("cpu"))
     for module in modules:
         module.to("cpu")
 
-    anomaly_scores = torch.cat((*anomaly_scores,))
-    targets = torch.cat((*targets,))
-
-    auroc = roc_auc_score(targets.view(-1).numpy(), anomaly_scores.view(-1).numpy())
-    roc = roc_curve(targets.view(-1).numpy(), anomaly_scores.view(-1).numpy())[:2]
+    roc = auroc_obj._compute()
+    auroc = auc(roc[0], roc[1], reorder=True)
     if gen_aupro:
-        aupro_obj = AUPRO()
-        aupro_obj.update(preds=anomaly_scores, target=targets.to(torch.uint8))
         pro = aupro_obj._compute()
-        aupro = aupro_obj.compute()
+        aupro = auc(pro[0], pro[1], reorder=True)
+        aupro /= pro[0][-1]
 
     logger.info(f"AUROC: {auroc}")
     if gen_aupro:
