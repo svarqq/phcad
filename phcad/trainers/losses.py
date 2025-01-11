@@ -103,7 +103,7 @@ class SSIMLoss(_Loss):
         return 1 - (self.f(model_inputs, model_outputs, **kwargs)).mean()
 
     def get_logits(self, model_inputs, model_outputs, **kwargs):
-        p = self.get_pests(model_inputs, model_outputs), SSIMLoss.eps, 1 - SSIMLoss.eps
+        p = self.get_pests(model_inputs, model_outputs), eps, 1 - eps
         logits = torch.log(p) - torch.log(1 - p)
         return logits
 
