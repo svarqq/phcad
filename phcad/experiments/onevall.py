@@ -338,9 +338,7 @@ def run_onevall(
         )
         # Test - normal
         results_path = results_dir / f"{platt_pre}.json"
-        inputs_to_anomaly_score_platt = lambda inputs: F.sigmoid(
-            pm(inputs_to_logits_fn(inputs))
-        )
+        inputs_to_anomaly_score_platt = lambda inputs: pm(inputs_to_logits_fn(inputs))
         modules_platt = modules_phcal + [pm]
         evaluate_thresholding(
             inputs_to_anomaly_score_platt, test_loader_ph, modules_platt, results_path
@@ -373,8 +371,8 @@ def run_onevall(
         )
         # Test - normal
         results_path = results_dir / f"{beta_pre}.json"
-        inputs_to_anomaly_score_beta = lambda inputs: F.sigmoid(
-            bm(inputs_to_pests_fn(inputs))
+        inputs_to_anomaly_score_beta = lambda inputs: bm(
+            inputs_to_pests_fn(inputs)
         )  # Note bm outputs logits
         modules_beta = modules_phcal + [bm]
         evaluate_thresholding(
