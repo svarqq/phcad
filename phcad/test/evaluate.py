@@ -160,6 +160,9 @@ def evaluate_thresholding_segmentation(
     for module in modules:
         module.to("cpu")
 
+    anomaly_scores = torch.cat((*anomaly_scores,))
+    targets = torch.cat((*targets,))
+
     auroc = roc_auc_score(targets.numpy().view(-1), anomaly_scores.numpy().view(-1))
     roc = roc_curve(targets.numpy().view(-1), anomaly_scores.numpy().view(-1))[:2]
     if gen_aupro:
