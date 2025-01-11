@@ -163,8 +163,8 @@ def evaluate_thresholding_segmentation(
     anomaly_scores = torch.cat((*anomaly_scores,))
     targets = torch.cat((*targets,))
 
-    auroc = roc_auc_score(targets.numpy().view(-1), anomaly_scores.numpy().view(-1))
-    roc = roc_curve(targets.numpy().view(-1), anomaly_scores.numpy().view(-1))[:2]
+    auroc = roc_auc_score(targets.view(-1).numpy(), anomaly_scores.view(-1).numpy())
+    roc = roc_curve(targets.view(-1).numpy(), anomaly_scores.view(-1).numpy())[:2]
     if gen_aupro:
         aupro_obj = AUPRO()
         aupro_obj.update(preds=anomaly_scores, target=targets.to(torch.uint8))
@@ -248,8 +248,8 @@ def evaluate_thresholding_segmentation_perturbation(
     anomaly_scores = torch.cat((*anomaly_scores,))
     targets = torch.cat((*targets,))
 
-    auroc = roc_auc_score(targets.numpy().view(-1), anomaly_scores.numpy().view(-1))
-    roc = roc_curve(targets.numpy().view(-1), anomaly_scores.numpy().view(-1))[:2]
+    auroc = roc_auc_score(targets.view(-1).numpy(), anomaly_scores.view(-1).numpy())
+    roc = roc_curve(targets.view(-1).numpy(), anomaly_scores.view(-1).numpy())[:2]
     if gen_aupro:
         aupro_obj = AUPRO()
         aupro_obj.update(preds=anomaly_scores, target=targets.to(torch.uint8))
