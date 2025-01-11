@@ -87,7 +87,7 @@ class CompositeBCE(_Loss):
         return model_outputs
 
     def get_pests(self, model_outputs, **kwargs):
-        return torch.clamp(F.sigmoid(model_outputs), eps, 1 - eps)
+        return F.sigmoid(model_outputs)
 
 
 class SSIMLoss(_Loss):
