@@ -1,5 +1,7 @@
 import torch
 
+eps = 1e-4
+
 
 class PlattCal(torch.nn.Module):
     def __init__(self):
@@ -26,8 +28,6 @@ class PerPixelPlatt(torch.nn.Module):
 
 
 class BetaCal(torch.nn.Module):
-    eps = 1e-4
-
     def __init__(self):
         super(BetaCal, self).__init__()
         self.a = torch.nn.Parameter(torch.empty(1))
@@ -38,17 +38,16 @@ class BetaCal(torch.nn.Module):
         torch.nn.init.normal_(self.c, mean=0, std=0.1)
 
     def forward(self, prob_estimates):
-        a, b = torch.clamp(self.a, 0), torch.clamp(self.b, 0)
-        prob_estimates = torch.clamp(prob_estimates, BetaCal.eps, 1 - BetaCal.eps)
+        self.a.data = self.a.clamp(self.a, 0)
+        self.b.data = self.b.clamp(self.b, 0)
+        prob_estimates = torch.clamp(prob_estimates, eps, 1 - eps)
         s1 = torch.log(prob_estimates)
         s2 = -torch.log(1 - prob_estimates)
-        logits = a * s1 + b * s2 + self.c
+        logits = self.a * s1 + self.b * s2 + self.c
         return logits
 
 
 class PerPixelBeta(torch.nn.Module):
-    eps = 1e-4
-
     def __init__(self, wh_shape):
         super(PerPixelBeta, self).__init__()
         self.a = torch.nn.Parameter(torch.empty(wh_shape))
@@ -59,13 +58,12 @@ class PerPixelBeta(torch.nn.Module):
         torch.nn.init.normal_(self.c, mean=0, std=0.1)
 
     def forward(self, prob_estimates):
-        a, b = torch.clamp(self.a, 0), torch.clamp(self.b, 0)
-        prob_estimates = torch.clamp(
-            prob_estimates, PerPixelBeta.eps, 1 - PerPixelBeta.eps
-        )
+        self.a.data = self.a.clamp(self.a, 0)
+        self.b.data = self.b.clamp(self.b, 0)
+        prob_estimates = torch.clamp(prob_estimates, eps, 1 - eps)
         s1 = torch.log(prob_estimates)
         s2 = -torch.log(1 - prob_estimates)
-        logits = torch.mul(a, s1) + torch.mul(b, s2) + self.c
+        logits = torch.mul(self.a, s1) + torch.mul(self.b, s2) + self.c
         return logits
 
 

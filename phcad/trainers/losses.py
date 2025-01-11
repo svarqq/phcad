@@ -13,6 +13,9 @@ from phcad.metrics import (
 )
 
 
+eps = 1e-4
+
+
 class DSVDDLoss(_Loss):
     def __init__(self, center):
         super(DSVDDLoss, self).__init__()
@@ -27,12 +30,10 @@ class DSVDDLoss(_Loss):
         return torch.vmap(f)(model_outputs)
 
     def get_pests(self, model_outputs, **kwargs):
-        return F.sigmoid(self.get_logits(model_outputs))
+        return torch.clamp(F.sigmoid(self.get_logits(model_outputs)), eps, 1 - eps)
 
 
 class HSCLoss(_Loss):
-    eps = 1e-4
-
     def __init__(self):
         super(HSCLoss, self).__init__()
 
@@ -41,18 +42,18 @@ class HSCLoss(_Loss):
         return F.binary_cross_entropy(p_estimates, labels)
 
     def get_logits(self, model_outputs, **kwargs):
-        p = torch.clamp(self.get_pests(model_outputs), HSCLoss.eps, 1 - HSCLoss.eps)
+        p = self.get_pests(model_outputs)
         logits = torch.log(p) - torch.log(1 - p)
         return logits
 
     def get_pests(self, model_outputs, **kwargs):
-        p_estimates = 1 - torch.vmap(rbf_with_pseudo_huber)(model_outputs)
+        p_estimates = torch.clamp(
+            1 - torch.vmap(rbf_with_pseudo_huber)(model_outputs), eps, 1 - eps
+        )
         return p_estimates
 
 
 class FCDDLoss(_Loss):
-    eps = 1e-4
-
     def __init__(self, receptive_upsample_module):
         super(FCDDLoss, self).__init__()
         self.f = torch.vmap(fcdd_anomaly_heatmap)
@@ -65,17 +66,13 @@ class FCDDLoss(_Loss):
         return F.binary_cross_entropy(pests_train, labels)
 
     def get_logits(self, model_outputs, **kwargs):
-        p = torch.clamp(
-            self.get_pests(model_outputs),
-            FCDDLoss.eps,
-            1 - FCDDLoss.eps,
-        )
+        p = self.get_pests(model_outputs)
         logits = torch.log(p) - torch.log(1 - p)
         return logits
 
     def get_pests(self, model_outputs, **kwargs):
         upscaled_heatmaps = self.upsample(self.f(model_outputs)).squeeze(-3)
-        pests = 1 - torch.exp(-upscaled_heatmaps)
+        pests = torch.clamp(1 - torch.exp(-upscaled_heatmaps), eps, 1 - eps)
         return pests
 
 
@@ -90,12 +87,10 @@ class CompositeBCE(_Loss):
         return model_outputs
 
     def get_pests(self, model_outputs, **kwargs):
-        return F.sigmoid(model_outputs)
+        return torch.clamp(F.sigmoid(model_outputs), eps, 1 - eps)
 
 
 class SSIMLoss(_Loss):
-    eps = 1e-4
-
     # Note all SSIM values lie between [ims different <-- -1 and 1 --> ims identical]
     def __init__(self, reduce=True, **ssim_args):
         super(SSIMLoss, self).__init__()
@@ -108,14 +103,13 @@ class SSIMLoss(_Loss):
         return 1 - (self.f(model_inputs, model_outputs, **kwargs)).mean()
 
     def get_logits(self, model_inputs, model_outputs, **kwargs):
-        p = torch.clamp(
-            self.get_pests(model_inputs, model_outputs), SSIMLoss.eps, 1 - SSIMLoss.eps
-        )
+        p = self.get_pests(model_inputs, model_outputs), SSIMLoss.eps, 1 - SSIMLoss.eps
         logits = torch.log(p) - torch.log(1 - p)
         return logits
 
     def get_pests(self, model_inputs, model_outputs, **kwargs):
         p = (1 - self.f(model_inputs, model_outputs, **kwargs).mean(self.ch_dim)) / 2
+        p = torch.clamp(p, eps, 1 - eps)
         if self.reduce:
             return p.mean(self.px_dims)
         else:
