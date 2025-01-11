@@ -38,8 +38,8 @@ class BetaCal(torch.nn.Module):
         torch.nn.init.normal_(self.c, mean=0, std=0.1)
 
     def forward(self, prob_estimates):
-        self.a.data = self.a.clamp(self.a, 0)
-        self.b.data = self.b.clamp(self.b, 0)
+        self.a.data = torch.clamp(self.a, 0)
+        self.b.data = torch.clamp(self.b, 0)
         prob_estimates = torch.clamp(prob_estimates, eps, 1 - eps)
         s1 = torch.log(prob_estimates)
         s2 = -torch.log(1 - prob_estimates)
@@ -58,8 +58,8 @@ class PerPixelBeta(torch.nn.Module):
         torch.nn.init.normal_(self.c, mean=0, std=0.1)
 
     def forward(self, prob_estimates):
-        self.a.data = self.a.clamp(self.a, 0)
-        self.b.data = self.b.clamp(self.b, 0)
+        self.a.data = torch.clamp(self.a, 0)
+        self.b.data = torch.clamp(self.b, 0)
         prob_estimates = torch.clamp(prob_estimates, eps, 1 - eps)
         s1 = torch.log(prob_estimates)
         s2 = -torch.log(1 - prob_estimates)
