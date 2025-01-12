@@ -102,6 +102,7 @@ def get_dataset(
     split: str,
     label: str | None = None,
     complement=False,
+    test_indist_only=False,
     datadir=DATADIR,
 ) -> Subset:
     # Returned Subset always has VisionDataset as an object attribute here
@@ -173,6 +174,7 @@ def get_dataset(
 
     elif dataset_type == "segmentation":
         args["label"] = label
+        args["test_indist_only"] = test_indist_only
         label_data = dataset_class(**args)
         return Subset(label_data, list(range(len(label_data))))
 

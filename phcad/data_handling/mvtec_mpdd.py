@@ -34,6 +34,7 @@ class MVTecMPDD(VisionDataset):
         train=True,
         transform=None,
         target_transform=None,
+        test_indist_only=False,
         **dummy_args,
     ):
         if dataset_name != "mvtec" and dataset_name != "mpdd":
@@ -87,7 +88,15 @@ class MVTecMPDD(VisionDataset):
                 )
             )
         else:
-            self.data = [meta["test_data"][i] for i in label_idcs]
+            all_data = [meta["test_data"][i] for i in label_idcs]
+            if test_indist_only:
+                indist_data = []
+                for p, mask in all_data:
+                    if not mask:
+                        indist_data.append((p, mask))
+                self.data = indist_data
+            else:
+                self.data = all_data
             self.class_list = [orig_classes[i] for i in label_idcs]
 
     def __len__(self):
