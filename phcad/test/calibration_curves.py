@@ -2,6 +2,7 @@ import logging
 import json
 
 import torch
+import torchvision.transforms.v2.functional as F
 import numpy as np
 
 from phcad.test.utils import check_cal_curves
@@ -13,6 +14,7 @@ def calibration_curve(
     inputs_to_indist_pests,
     test_loader,
     n_bins=10,
+    segmentation=False,
     modules=None,
     savepath=None,
     device=None,
@@ -35,12 +37,14 @@ def calibration_curve(
             data = data.to(device)
             batch_scores = inputs_to_indist_pests(data).to("cpu")
             indist_pests.append(batch_scores)
+            if segmentation:
+                batch_targets = F.resize(batch_targets, data.shape[-2:])
             targets.append(-batch_targets + 1)
     for module in modules:
         module.to("cpu")
 
-    indist_pests = torch.cat((*indist_pests,)).numpy()
-    targets = torch.cat((*targets,)).numpy()
+    indist_pests = torch.cat((*indist_pests,)).view(-1).numpy()
+    targets = torch.cat((*targets,)).view(-1).numpy()
 
     bins = np.linspace(0.0, 1.0 + 1e-8, n_bins + 1)
     bin_idx = np.digitize(indist_pests, bins) - 1
