@@ -50,6 +50,12 @@ def get_calibration_curves(
     if dataset_name != "fmnist" and dataset_name != "cifar10" and loss_name == "ssim":
         transform_and_model_identifier += "-ae"
 
+    if loss_name == "ssim":
+        if dataset_name == "cifar10" or dataset_name == "fmnist":
+            base_loss = base_loss(win_size=11)
+        else:
+            base_loss = base_loss(win_size=11)
+
     # Setup save directories
     exp_dir = EXPDIR / "onevall" / dataset_name / loss_name
     model_dir = exp_dir / "checkpoints"
