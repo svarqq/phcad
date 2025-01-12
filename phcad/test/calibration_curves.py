@@ -4,6 +4,8 @@ import json
 import torch
 import numpy as np
 
+from phcad.test.utils import check_cal_curves
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,10 +19,10 @@ def calibration_curve(
 ):
     # Credit to sklearn: https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/calibration.py
     # and pycalib https://github.com/classifier-calibration/PyCalib/blob/master/pycalib/utils.py
-    # if savepath and savepath.exists():
-    #    results_generated = check_results(savepath)
-    #    if results_generated:
-    #        return
+    if savepath and savepath.exists():
+        results_generated = check_cal_curves(savepath)
+        if results_generated:
+            return
     logger.info(f"Getting calibration curve, saving to {savepath}")
     device = "cuda" if not device and torch.cuda.is_available else "cpu"
 
@@ -45,9 +47,6 @@ def calibration_curve(
     bin_pred = np.bincount(bin_idx, weights=indist_pests, minlength=n_bins)
     bin_true = np.bincount(bin_idx, weights=targets, minlength=n_bins)
     bin_total = np.bincount(bin_idx, minlength=n_bins)
-
-    av_pred = bin_pred / bin_total
-    av_true = bin_true / bin_total
 
     results = {
         "total_bin_counts": bin_total.tolist(),

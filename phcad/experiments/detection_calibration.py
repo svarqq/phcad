@@ -177,7 +177,9 @@ def get_calibration_curves(
         phtrain_pre = f"{partial_pre}-phtrain-{oe_cal_type}"
         model_phtrain = MODEL_MAP[transform_and_model_identifier](**base_model_args)
         model_phtrain.prepare_calibration_network()
-        model_state = torch.load(model_dir / f"{phtrain_pre}.pt")["model_state"]
+        model_state = torch.load(model_dir / f"{phtrain_pre}.pt", weights_only=False)[
+            "model_state"
+        ]
         model_phtrain.load_state_dict(model_state)
 
         # Curve for phtrain
@@ -197,7 +199,9 @@ def get_calibration_curves(
         # Load partial
 
         model_partial = MODEL_MAP[transform_and_model_identifier](**base_model_args)
-        model_state = torch.load(model_dir / f"{partial_pre}.pt")["model_state"]
+        model_state = torch.load(model_dir / f"{partial_pre}.pt", weights_only=False)[
+            "model_state"
+        ]
         model_partial.load_state_dict(model_state)
 
         # Get logits and probability estimate functions
@@ -217,7 +221,7 @@ def get_calibration_curves(
 
         # Load Platt
         platt_pre = f"{partial_pre}-platt-{oe_cal_type}"
-        platt_state = torch.load(model_dir / f"{platt_pre}.pt")
+        platt_state = torch.load(model_dir / f"{platt_pre}.pt", weights_only=False)
         pm = PlattCal()
         pm.load_state_dict(platt_state)
         modules_platt = modules_phcal + [pm]
@@ -242,7 +246,7 @@ def get_calibration_curves(
 
         # Load Beta
         beta_pre = f"{partial_pre}-beta-{oe_cal_type}"
-        beta_state = torch.load(model_dir / f"{beta_pre}.pt")
+        beta_state = torch.load(model_dir / f"{beta_pre}.pt", weights_only=False)
         bm = BetaCal()
         bm.load_state_dict(beta_state)
         modules_beta = modules_phcal + [bm]
@@ -277,8 +281,11 @@ def get_calibration_curves(
 
         # Load full
         model_full = MODEL_MAP[transform_and_model_identifier](**base_model_args)
-        model_state = torch.load(model_dir / f"{full_pre}.pt")["model_state"]
+        model_state = torch.load(model_dir / f"{full_pre}.pt", weights_only=False)[
+            "model_state"
+        ]
         model_full.load_state_dict(model_state)
+        modules_full = [model_full, loss_full]
 
         # Curve for full
         results_path = results_dir / f"{full_pre}.json"
@@ -288,6 +295,6 @@ def get_calibration_curves(
         calibration_curve(
             inputs_to_indist_pests_full,
             test_loader,
-            modules=[model_full],
+            modules=modules_full,
             savepath=results_path,
         )

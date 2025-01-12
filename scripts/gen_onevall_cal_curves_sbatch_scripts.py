@@ -40,7 +40,7 @@ def generate_sbatch(
     prefix = (
         """#!/usr/bin/env bash
 #SBATCH --mail-type=ALL
-#SBATCH -t 1-0  # 1 day
+#SBATCH -t 0-04:00:00  # 4h
 #SBATCH --mem="""
         + mem
         + """
@@ -76,7 +76,7 @@ conda activate ml
         log_path = logdir / f"{log_name}_%a_%A.log"
         err_path = errdir / f"{log_name}_%a_%A_err.log"
 
-    job_name = f"{dataset_name}-{log_name}"
+    job_name = f"cc-{dataset_name}-{log_name}"
     dynamic_sbatch_args = (
         f"#SBATCH -J {job_name}\n"
         f"#SBATCH --output={log_path}\n"
