@@ -94,10 +94,12 @@ def get_default_test_transform(
     return v2.Compose(transforms)
 
 
-def generic_norm_transform(mean, std, ae=False):
+def generic_norm_transform(mean, std, ae=False, gs=False, resize_px=None):
     transforms = []
-    if ae:
+    if ae or gs:
         transforms.append(v2.Grayscale(1))
+    if resize_px:
+        transforms.append(v2.Resize(resize_px))
     transforms += [
         v2.ToImage(),
         v2.ToDtype(torch.get_default_dtype(), scale=True),

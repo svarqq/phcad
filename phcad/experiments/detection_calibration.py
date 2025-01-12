@@ -81,7 +81,11 @@ def get_calibration_curves(
     train_full = get_dataset(dataset_name, "train", label)
     mean_full, std_full = mean_std(train_full, ae=loss_name == "ssim")
     test_transform_full = TEST_TRANSFORM_MAP[transform_and_model_identifier](
-        mean_full, std_full, ae=loss_name == "ssim"
+        mean_full,
+        std_full,
+        ae=loss_name == "ssim",
+        gs=dataset_name == "fmnist",
+        resize_px=28 if dataset_name == "fmnist" else None,
     )
 
     if dataset_type == "classification":
@@ -152,7 +156,11 @@ def get_calibration_curves(
         )
         mean_partial, std_partial = mean_std(train_data_partial, ae=loss_name == "ssim")
         test_transform_partial = TEST_TRANSFORM_MAP[transform_and_model_identifier](
-            mean_partial, std_partial, ae=loss_name == "ssim"
+            mean_partial,
+            std_partial,
+            ae=loss_name == "ssim",
+            gs=dataset_name == "fmnist",
+            resize_px=28 if dataset_name == "fmnist" else None,
         )
 
         if spectral_oe_cal:
