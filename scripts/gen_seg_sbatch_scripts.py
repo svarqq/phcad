@@ -6,7 +6,7 @@ from phcad.train.losses import SEG_LOSS_MAP
 from phcad.data.constants import DS_TO_LABELS_MAP
 from constants import SLURMDIR
 
-slurm_subdir = SLURMDIR / "segmentation"
+slurm_subdir = SLURMDIR / "localization"
 parser = argparse.ArgumentParser()
 parser.add_argument("dataset_name")
 parser.add_argument("-t", "--test-one", action="store_true")
@@ -82,7 +82,7 @@ conda activate ml
         )
     dynamic_sbatch_args += "\n"
 
-    seg_script_path = Path(f"{__file__}/../run_segmentation.py").resolve()
+    seg_script_path = Path(f"{__file__}/../run_localization.py").resolve()
     cmd_args = f"{dataset_name} {loss_name}"
     if test_one_label:
         cmd_args += " 0"

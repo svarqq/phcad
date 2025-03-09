@@ -14,7 +14,7 @@ def calibration_curve(
     inputs_to_indist_pests,
     test_loader,
     n_bins=10,
-    segmentation=False,
+    localization=False,
     modules=None,
     savepath=None,
     device=None,
@@ -37,7 +37,7 @@ def calibration_curve(
             data = data.to(device)
             batch_scores = inputs_to_indist_pests(data).to("cpu")
             indist_pests.append(batch_scores)
-            if segmentation:
+            if localization:
                 batch_targets = F.resize(batch_targets, data.shape[-2:])
             targets.append(-batch_targets + 1)
     for module in modules:

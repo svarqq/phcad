@@ -149,7 +149,7 @@ def run_detection_experiment(
         test_data_anom.dataset.target_transform = label_to_one
         test_data = test_data_in + test_data_anom
         test_loader = DataLoader(test_data, 128, num_workers=4)
-    elif dataset_type == "segmentation":
+    elif dataset_type == "localization":
         # localized, subtle anomalies
         test_data = get_dataset(dataset_name, "test", label)
         test_data.dataset.transform = test_transform_full

@@ -4,7 +4,7 @@ import argparse
 
 from phcad.data.constants import DS_TO_LABELS_MAP
 from phcad.train.losses import SEG_LOSS_MAP
-from phcad.experiments.segmentation import run_segmentation_experiment
+from phcad.experiments.localization import run_localization_experiment
 
 parser = argparse.ArgumentParser()
 parser.add_argument("dataset_name")
@@ -34,5 +34,5 @@ if __name__ == "__main__":
         "spectral_oe_train": args.spectral_train,
         "spectral_oe_cal": args.spectral_cal,
     }
-    logging.info(f"Starting segmentation experiment for label {label} of {dname}")
-    run_segmentation_experiment(**xargs)
+    logging.info(f"Starting localization experiment for label {label} of {dname}")
+    run_localization_experiment(**xargs)

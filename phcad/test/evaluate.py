@@ -131,7 +131,7 @@ def evaluate_thresholding_perturbation(
     return
 
 
-def evaluate_thresholding_segmentation(
+def evaluate_thresholding_localization(
     inputs_to_anomaly_map,
     test_loader,
     modules=None,
@@ -192,7 +192,7 @@ def evaluate_thresholding_segmentation(
     return
 
 
-def evaluate_thresholding_segmentation_perturbation(
+def evaluate_thresholding_localization_perturbation(
     inputs_to_anomaly_map,
     inputs_to_loss,
     norm_std,

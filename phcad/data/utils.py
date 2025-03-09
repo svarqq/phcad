@@ -29,8 +29,8 @@ DATASET_MAP = {
     "cifar10": (CIFAR10, CIFAR10_LABEL_MAP, "classification"),
     "cifar100": (CIFAR100, None, "classification"),
     "imagenet21k-minus1k": (ImageNet21KMinus1K, None, "classification"),
-    "mvtec": (MVTec, MVTEC_LABEL_MAP, "segmentation"),
-    "mpdd": (MPDD, MPDD_LABEL_MAP, "segmentation"),
+    "mvtec": (MVTec, MVTEC_LABEL_MAP, "localization"),
+    "mpdd": (MPDD, MPDD_LABEL_MAP, "localization"),
 }
 
 logger = logging.getLogger(__name__)
@@ -124,9 +124,9 @@ def get_dataset(
         raise ValueError(
             f"Label {label} is not in dataset {dataset_name}. Choose one of {list(label_map.keys())}"
         )
-    if split == "test" and dataset_type == "segmentation" and complement:
+    if split == "test" and dataset_type == "localization" and complement:
         error_msg = (
-            "Defensively disallowing complement of test segmentation data from "
+            "Defensively disallowing complement of test localization data from "
             "being fetched, as it's designed for detection testing"
         )
         raise ValueError(error_msg)
@@ -165,7 +165,7 @@ def get_dataset(
         label_data = Subset(full_data, label_idcs)
         return label_data
 
-    elif dataset_type == "segmentation":
+    elif dataset_type == "localization":
         args["label"] = label
         args["test_indist_only"] = test_indist_only
         label_data = dataset_class(**args)

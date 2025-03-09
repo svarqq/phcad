@@ -28,13 +28,13 @@ from phcad.train.train import train
 from phcad.train.calibrate import apply_posthoc_calibration_seg
 from phcad.test.anomaly_scores import SEG_ANOMALY_SCORES
 from phcad.test.evaluate import (
-    evaluate_thresholding_segmentation,
-    evaluate_thresholding_segmentation_perturbation,
+    evaluate_thresholding_localization,
+    evaluate_thresholding_localization_perturbation,
 )
 from phcad.train.utils import get_optim_sched_epochs
 
 
-def run_segmentation_experiment(
+def run_localization_experiment(
     dataset_name,
     label,
     loss_name,
@@ -62,7 +62,7 @@ def run_segmentation_experiment(
         anomaly_score = anomaly_score(receptive_upsample)
 
     # Setup save directories
-    exp_dir = EXPROOT / "segmentation" / dataset_name / loss_name
+    exp_dir = EXPROOT / "localization" / dataset_name / loss_name
     model_dir = exp_dir / "checkpoints"
     results_dir = exp_dir / "results"
     train_cal_splits_dir = exp_dir / "train-cal-splits"
@@ -104,11 +104,11 @@ def run_segmentation_experiment(
 
     spectral_data = None
     if spectral_oe_train or spectral_oe_cal:
-        segmentation_targets = False if loss_name == "fcdd" else True
+        localization_targets = False if loss_name == "fcdd" else True
         spectral_data = SpectralNaturalImages(
             imshape,
             transform=generic_norm_transform(mean_full, std_full),
-            segmentation_targets=segmentation_targets,
+            localization_targets=localization_targets,
             target=1,
         )
 
@@ -267,7 +267,7 @@ def run_segmentation_experiment(
         results_path = results_dir / f"{platt_pre}.json"
         inputs_to_anomaly_score_platt = lambda inputs: pm(inputs_to_logits_fn(inputs))
         modules_platt = modules_phcal + [pm]
-        evaluate_thresholding_segmentation(
+        evaluate_thresholding_localization(
             inputs_to_anomaly_score_platt,
             test_loader_ph,
             modules_platt,
@@ -281,7 +281,7 @@ def run_segmentation_experiment(
                 pm(inputs_to_logits_fn(inputs)), labels
             )
         )
-        evaluate_thresholding_segmentation_perturbation(
+        evaluate_thresholding_localization_perturbation(
             inputs_to_anomaly_score_platt,
             inputs_to_loss_platt,
             std_partial,
@@ -310,7 +310,7 @@ def run_segmentation_experiment(
             inputs_to_pests_fn(inputs)
         )  # NB: bm output are calibrated logits
         modules_beta = modules_phcal + [bm]
-        evaluate_thresholding_segmentation(
+        evaluate_thresholding_localization(
             inputs_to_anomaly_score_beta,
             test_loader_ph,
             modules=modules_beta,
@@ -322,7 +322,7 @@ def run_segmentation_experiment(
         inputs_to_loss_beta = lambda inputs, labels: F.binary_cross_entropy_with_logits(
             bm(inputs_to_pests_fn(inputs)), labels
         )
-        evaluate_thresholding_segmentation_perturbation(
+        evaluate_thresholding_localization_perturbation(
             inputs_to_anomaly_score_beta,
             inputs_to_loss_beta,
             std_partial,
@@ -358,7 +358,7 @@ def run_segmentation_experiment(
         modules_full = [model_full, anomaly_score]
 
         results_path = results_dir / f"{full_pre}.json"
-        evaluate_thresholding_segmentation(
+        evaluate_thresholding_localization(
             inputs_to_anomaly_score_full,
             test_loader,
             modules=modules_full,
@@ -370,7 +370,7 @@ def run_segmentation_experiment(
             model_inputs=inputs, model_outputs=model_full(inputs), labels=labels
         )
         modules_pert_full = modules_full + [base_loss]
-        evaluate_thresholding_segmentation_perturbation(
+        evaluate_thresholding_localization_perturbation(
             inputs_to_anomaly_score_full,
             inputs_to_loss_full,
             std_full,

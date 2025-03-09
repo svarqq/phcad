@@ -7,7 +7,7 @@ class SpectralNaturalImages(Dataset):
     def __init__(
         self,
         imshape: int,
-        segmentation_targets: bool = False,
+        localization_targets: bool = False,
         target: int = 1,
         transform=None,
         nsamps: int = 0,
@@ -18,7 +18,7 @@ class SpectralNaturalImages(Dataset):
             raise ValueError(f"Target must be 0 or 1, currently target={target}")
         self.imshape = imshape
         self.nsamps = nsamps
-        self.segmentation_targets = segmentation_targets
+        self.localization_targets = localization_targets
         self.target = torch.tensor(target, dtype=torch.get_default_dtype())
         self.transform = transform
         if nsamps:
@@ -33,7 +33,7 @@ class SpectralNaturalImages(Dataset):
         else:
             im = generate_natural_image_from_spectrum(self.imshape[-1], self.imshape[0])
 
-        if self.segmentation_targets:
+        if self.localization_targets:
             if self.target == 1:
                 target = torch.ones(self.imshape[-2:], dtype=torch.uint8)
             elif self.target == 0:
@@ -46,7 +46,7 @@ class SpectralNaturalImages(Dataset):
         return im, target
 
     def switch_target_type(self):
-        self.segmentation_targets = not self.segmentation_targets
+        self.localization_targets = not self.localization_targets
 
     def generate_static_data(self):
         self.ims = [

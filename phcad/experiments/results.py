@@ -51,7 +51,7 @@ def parse_results(dataset_name, loss_name, experiment_type="detection"):
             for infix in infixes:
                 aurocs = np.empty(NUMSEEDS)
                 rocs = np.zeros((NUMSEEDS, 2, num_interpolation_points))
-                if experiment_type == "segmentation":
+                if experiment_type == "localization":
                     aupros = np.empty(NUMSEEDS)
                     pros = np.zeros((NUMSEEDS, 2, num_interpolation_points))
 
@@ -89,7 +89,7 @@ def parse_results(dataset_name, loss_name, experiment_type="detection"):
                 auroc_map["roc"][infix]["x"] += [rocs[:, 0, :].mean(0)]
                 auroc_map["roc"][infix]["y"] += [rocs[:, 1, :].mean(0)]
 
-                if experiment_type == "segmentation":
+                if experiment_type == "localization":
                     aupro_map["all"][infix] += [aupros.mean()]
                     aupro_map["avg"][label][f"{label}-{infix}"] = aupros.mean()
                     aupro_map["seeds"][label][f"{label}-{infix}"] = aupros.tolist()
@@ -109,7 +109,7 @@ def parse_results(dataset_name, loss_name, experiment_type="detection"):
             np.stack(auroc_map["roc"][infix]["y"]).mean(0).tolist()
         )
 
-        if experiment_type == "segmentation":
+        if experiment_type == "localization":
             aupro_map["all"][infix] = np.array(aupro_map["all"][infix]).mean().tolist()
             aupro_map["pro"][infix]["x"] = (
                 np.stack(aupro_map["pro"][infix]["x"]).mean(0).tolist()
@@ -119,7 +119,7 @@ def parse_results(dataset_name, loss_name, experiment_type="detection"):
             )
     with open(EXPROOT / experiment_type / dataset_name / f"{loss_name}.json", "w") as f:
         f.write(json.dumps(auroc_map, indent=2))
-    if experiment_type == "segmentation":
+    if experiment_type == "localization":
         with open(
             EXPROOT / experiment_type / dataset_name / f"{loss_name}-pro.json", "w"
         ) as f:

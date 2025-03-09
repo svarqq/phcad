@@ -20,7 +20,7 @@ from phcad.data.transforms import (
     get_default_train_transform,
 )
 from phcad.experiments.constants import EXPROOT
-from phcad.experiments.segmentation import run_segmentation_experiment
+from phcad.experiments.localization import run_localization_experiment
 from phcad.models.layers import PlattCal
 
 
@@ -28,10 +28,10 @@ if __name__ == "__main__":
     spec_oe_train = False
     spec_oe_cal = False
 
-    # run_segmentation_experiment("mvtec", "bottle", "fcdd", spec_oe_train, spec_oe_cal)
+    # run_localization_experiment("mvtec", "bottle", "fcdd", spec_oe_train, spec_oe_cal)
 
     # TODO: BUG PRESENT
-    run_segmentation_experiment(
+    run_localization_experiment(
         "mpdd", "bracket_brown", "bce", spec_oe_train, spec_oe_cal
     )
 

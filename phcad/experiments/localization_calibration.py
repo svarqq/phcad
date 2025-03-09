@@ -52,7 +52,7 @@ def get_seg_cal_curves(
         base_loss = base_loss(receptive_upsample)
 
     # Setup save directories
-    exp_dir = EXPROOT / "segmentation" / dataset_name / loss_name
+    exp_dir = EXPROOT / "localization" / dataset_name / loss_name
     model_dir = exp_dir / "checkpoints"
     results_dir = exp_dir / "cal_curves"
     train_cal_splits_dir = exp_dir / "train-cal-splits"
@@ -90,7 +90,7 @@ def get_seg_cal_curves(
         spectral_data = SpectralNaturalImages(
             imshape,
             transform=generic_norm_transform(mean_full, std_full),
-            segmentation_targets=True,
+            localization_targets=True,
             target=1,
         )
 
@@ -185,7 +185,7 @@ def get_seg_cal_curves(
         calibration_curve(
             inputs_to_indist_pests_platt,
             test_loader_ph,
-            segmentation=True,
+            localization=True,
             modules=modules_platt,
             savepath=results_path,
         )
@@ -213,7 +213,7 @@ def get_seg_cal_curves(
         calibration_curve(
             inputs_to_indist_pests_beta,
             test_loader_ph,
-            segmentation=True,
+            localization=True,
             modules=modules_beta,
             savepath=results_path,
         )
@@ -240,7 +240,7 @@ def get_seg_cal_curves(
         calibration_curve(
             inputs_to_indist_pests_full,
             test_loader,
-            segmentation=True,
+            localization=True,
             modules=modules_full,
             savepath=results_path,
         )

@@ -6,7 +6,7 @@ from phcad.train.losses import SEG_LOSS_MAP
 from phcad.data.constants import DS_TO_LABELS_MAP
 from constants import SLURMDIR
 
-slurm_subdir = SLURMDIR / "segmentation-curves"
+slurm_subdir = SLURMDIR / "localization-curves"
 parser = argparse.ArgumentParser()
 parser.add_argument("dataset_name")
 parser.add_argument("-t", "--test-one", action="store_true")

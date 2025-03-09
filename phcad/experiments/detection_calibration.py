@@ -92,7 +92,7 @@ def get_calibration_curves(
         # detection
         indist_test_data = get_dataset(dataset_name, "test", label)
         indist_test_data.dataset.target_transform = label_to_zero
-    elif dataset_type == "segmentation":
+    elif dataset_type == "localization":
         # localized, subtle anomalies
         indist_test_data = get_dataset(
             dataset_name, "test", label, test_indist_only=True
