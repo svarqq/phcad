@@ -24,7 +24,7 @@ from phcad.data_handling.transforms import (
     mask_to_class,
 )
 from phcad.data_handling.constants import OE_DATASET_MAP
-from phcad.trainers.losses import LOSS_MAP
+from phcad.train.losses import LOSS_MAP
 from phcad.test.calibration_curves import calibration_curve
 
 

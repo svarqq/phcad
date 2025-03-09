@@ -23,15 +23,15 @@ from phcad.data_handling.transforms import (
     mask_to_class,
 )
 from phcad.data_handling.constants import OE_DATASET_MAP, MVTEC_LABELS_NOFLIP
-from phcad.trainers.losses import LOSS_MAP
-from phcad.trainers.train import train
-from phcad.trainers.calibrate import apply_posthoc_calibration
+from phcad.train.losses import LOSS_MAP
+from phcad.train.train import train
+from phcad.train.calibrate import apply_posthoc_calibration
 from phcad.test.anomaly_scores import ANOMALY_SCORES
 from phcad.test.evaluate import (
     evaluate_thresholding,
     evaluate_thresholding_perturbation,
 )
-from phcad.trainers.utils import get_optim_sched_epochs
+from phcad.train.utils import get_optim_sched_epochs
 
 
 def run_onevall(

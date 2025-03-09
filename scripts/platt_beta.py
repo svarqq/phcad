@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.linear_model import LogisticRegression
 from betacal import BetaCalibration
 
-from phcad.trainers.calibrate import apply_posthoc_calibration
+from phcad.train.calibrate import apply_posthoc_calibration
 
 
 class TD(Dataset):

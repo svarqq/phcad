@@ -5,7 +5,7 @@ from torch.nn.parameter import Buffer
 import torch.nn.functional as F
 
 from phcad.metrics import hypersphere_metric, fcdd_anomaly_heatmap, ssim
-from phcad.trainers import losses
+from phcad.train import losses
 
 
 class BCEAnomalyScore(torch.nn.Module):

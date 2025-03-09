@@ -3,7 +3,7 @@ import logging
 import argparse
 
 from phcad.data_handling.constants import DS_TO_LABELS_MAP
-from phcad.trainers.losses import SEG_LOSS_MAP
+from phcad.train.losses import SEG_LOSS_MAP
 from phcad.experiments.segmentation_calibration import get_seg_cal_curves
 
 parser = argparse.ArgumentParser()

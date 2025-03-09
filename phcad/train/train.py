@@ -2,7 +2,7 @@ import logging
 
 import torch
 
-from phcad.trainers.constants import CHKPTDIR
+from phcad.train.constants import CHKPTDIR
 
 logger = logging.getLogger(__name__)
 

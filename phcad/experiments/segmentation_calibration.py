@@ -23,7 +23,7 @@ from phcad.data_handling.transforms import (
     synthetic_mask,
 )
 from phcad.data_handling.constants import OE_DATASET_MAP
-from phcad.trainers.losses import SEG_LOSS_MAP
+from phcad.train.losses import SEG_LOSS_MAP
 from phcad.test.calibration_curves import calibration_curve
 
 

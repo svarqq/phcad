@@ -3,7 +3,7 @@ import logging
 import argparse
 
 from phcad.data_handling.constants import DS_TO_LABELS_MAP
-from phcad.trainers.losses import LOSS_MAP
+from phcad.train.losses import LOSS_MAP
 from phcad.experiments.onevall import run_onevall
 
 parser = argparse.ArgumentParser()

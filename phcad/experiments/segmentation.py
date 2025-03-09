@@ -23,15 +23,15 @@ from phcad.data_handling.transforms import (
     synthetic_mask,
 )
 from phcad.data_handling.constants import OE_DATASET_MAP, MVTEC_LABELS_NOFLIP
-from phcad.trainers.losses import SEG_LOSS_MAP
-from phcad.trainers.train import train
-from phcad.trainers.calibrate import apply_posthoc_calibration_seg
+from phcad.train.losses import SEG_LOSS_MAP
+from phcad.train.train import train
+from phcad.train.calibrate import apply_posthoc_calibration_seg
 from phcad.test.anomaly_scores import SEG_ANOMALY_SCORES
 from phcad.test.evaluate import (
     evaluate_thresholding_segmentation,
     evaluate_thresholding_segmentation_perturbation,
 )
-from phcad.trainers.utils import get_optim_sched_epochs
+from phcad.train.utils import get_optim_sched_epochs
 
 
 def run_segmentation_experiment(
