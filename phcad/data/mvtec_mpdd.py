@@ -34,6 +34,7 @@ class MVTecMPDD(VisionDataset):
         transform=None,
         target_transform=None,
         test_indist_only=False,
+        **kwargs,
     ):
         if dataset_name != "mvtec" and dataset_name != "mpdd":
             raise ValueError(
