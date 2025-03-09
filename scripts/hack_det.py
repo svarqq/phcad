@@ -14,6 +14,7 @@ from phcad.data_handling.spectral_natural_images import SpectralNaturalImages
 from phcad.data_handling.mvtec_mpdd import MVTecMPDD
 from phcad.data_handling.utils import get_dataset, get_train_cal_splits
 from phcad.data_handling.constants import CIFAR10_LABELS, FMNIST_LABELS
+from phcad.trainers.losses import LOSS_MAP
 from phcad.experiments.constants import EXPDIR
 from phcad.experiments.onevall import run_onevall
 from phcad.models.layers import PlattCal
@@ -22,7 +23,14 @@ from phcad.models.layers import PlattCal
 if __name__ == "__main__":
     spec_oe_train = False
     spec_oe_cal = False
-    run_onevall("cifar10", "frog", "ssim", spec_oe_train, spec_oe_cal)
+    for label in FMNIST_LABELS:
+        for loss in LOSS_MAP:
+            run_onevall("fmnist", label, loss, spec_oe_train, False)
+            run_onevall("fmnist", label, loss, spec_oe_train, True)
+    for label in CIFAR10_LABELS:
+        for loss in LOSS_MAP:
+            run_onevall("cifar10", label, loss, spec_oe_train, False)
+            run_onevall("cifar10", label, loss, spec_oe_train, True)
 
     # wrn_open = wrn18.WideResNet18()
     # wrn_clf = wrn18.WideResNet18(clf=True)

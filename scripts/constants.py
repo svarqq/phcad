@@ -3,3 +3,5 @@ from phcad.constants import SAVEROOT
 
 
 SLURMDIR = SAVEROOT / "slurm"
+FIGDIR = SAVEROOT / "figures"
+TABLEDIR = SAVEROOT / "tables"

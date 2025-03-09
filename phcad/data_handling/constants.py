@@ -105,8 +105,8 @@ OE_DATASET_MAP = {
     "cifar10": "cifar100",
     "fmnist": "cifar100",
     "imagenet30": "imagenet21k-minus1k",
-    "mvtec": "imagenet21k-minus1k",
-    "mpdd": "imagenet21k-minus1k",
+    "mvtec": "cifar100",
+    "mpdd": "cifar100",
 }
 
 DS_TO_LABELS_MAP = {
