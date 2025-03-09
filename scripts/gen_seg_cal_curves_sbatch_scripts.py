@@ -39,7 +39,6 @@ def generate_sbatch(
     mem = "4G" if small else "32G"
     prefix = (
         """#!/usr/bin/env bash
-#SBATCH --mail-type=ALL
 #SBATCH -t 0-03:00:00  # 4h
 #SBATCH --mem="""
         + mem
