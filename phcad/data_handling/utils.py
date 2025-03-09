@@ -13,11 +13,10 @@ from phcad.data_handling.constants import (
     DATADIR,
     FMNIST_LABEL_MAP,
     CIFAR10_LABEL_MAP,
-    IMAGENET30_LABEL_MAP,
     MVTEC_LABEL_MAP,
     MPDD_LABEL_MAP,
 )
-from phcad.data_handling.imagenet import ImageNet30, ImageNet21KMinus1K
+from phcad.data_handling.imagenet import ImageNet21KMinus1K
 from phcad.data_handling.mvtec_mpdd import MVTecMPDD
 
 
@@ -29,7 +28,6 @@ DATASET_MAP = {
     "fmnist": (FashionMNIST, FMNIST_LABEL_MAP, "classification"),
     "cifar10": (CIFAR10, CIFAR10_LABEL_MAP, "classification"),
     "cifar100": (CIFAR100, None, "classification"),
-    "imagenet30": (ImageNet30, IMAGENET30_LABEL_MAP, "classification"),
     "imagenet21k-minus1k": (ImageNet21KMinus1K, None, "classification"),
     "mvtec": (MVTec, MVTEC_LABEL_MAP, "segmentation"),
     "mpdd": (MPDD, MPDD_LABEL_MAP, "segmentation"),
@@ -133,9 +131,7 @@ def get_dataset(
         )
         raise ValueError(error_msg)
 
-    if dataset_name == "imagenet30":
-        parentdir = "imagenet1k"
-    elif dataset_name == "imagenet21k-minus1k":
+    if dataset_name == "imagenet21k-minus1k":
         parentdir = "imagenet21k"
         dataset_dir = datadir / parentdir
         oe_data = ImageNet21KMinus1K(root=dataset_dir)
@@ -145,11 +141,8 @@ def get_dataset(
     dataset_dir = datadir / parentdir
 
     args = {"root": dataset_dir}
-    if dataset_name == "imagenet30":
-        args["split"] = "train" if split == "train" else "val"
-    else:
-        args["train"] = True if split == "train" else False
-        args["download"] = True
+    args["train"] = True if split == "train" else False
+    args["download"] = True
 
     if dataset_type == "classification":
         full_data = dataset_class(**args)

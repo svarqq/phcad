@@ -16,9 +16,4 @@ def get_optim_sched_epochs(dataset):
             torch.optim.lr_scheduler.MultiStepLR, milestones=[20, 25], gamma=0.1
         )
         epochs = 30  # Really 300, because of dataset extension
-    elif dataset == "imagenet30":
-        sched = partial(
-            torch.optim.lr_scheduler.MultiStepLR, milestones=[100, 125], gamma=0.1
-        )
-        epochs = 150
     return opt, sched, epochs

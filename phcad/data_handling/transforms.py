@@ -121,8 +121,6 @@ def unnorm(im, mean, std):
 TRAIN_TRANSFORM_MAP = {
     "cifar10": get_cifar_train_transform,
     "fmnist": get_fmnist_train_transform,
-    "imagenet30": get_default_train_transform,
-    "imagenet30-ae": partial(get_default_train_transform, resize_px=292, crop_px=256),
     "mpdd": get_default_train_transform,
     "mpdd-ae": partial(get_default_train_transform, resize_px=292, crop_px=256),
     "mvtec": get_default_train_transform,
@@ -132,8 +130,6 @@ TRAIN_TRANSFORM_MAP = {
 TEST_TRANSFORM_MAP = {
     "cifar10": generic_norm_transform,
     "fmnist": generic_norm_transform,
-    "imagenet30": get_default_test_transform,
-    "imagenet30-ae": partial(get_default_test_transform, resize_px=292, crop_px=256),
     "mpdd": get_default_test_transform,
     "mpdd-ae": partial(get_default_test_transform, resize_px=292, crop_px=256),
     "mvtec": get_default_test_transform,
