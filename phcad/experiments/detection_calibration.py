@@ -8,22 +8,22 @@ from phcad.utils import dsvdd_center
 from phcad.experiments.constants import EXPDIR
 from phcad.models.constants import MODEL_MAP
 from phcad.models.layers import PlattCal, PerPixelPlatt, BetaCal, PerPixelBeta
-from phcad.data_handling.utils import (
+from phcad.data.utils import (
     get_dataset,
     get_train_cal_splits,
     mean_std,
     BalancedLoader,
     DATASET_MAP,
 )
-from phcad.data_handling.spectral_natural_images import SpectralNaturalImages
-from phcad.data_handling.transforms import (
+from phcad.data.spectral_natural_images import SpectralNaturalImages
+from phcad.data.transforms import (
     TEST_TRANSFORM_MAP,
     generic_norm_transform,
     label_to_zero,
     label_to_one,
     mask_to_class,
 )
-from phcad.data_handling.constants import OE_DATASET_MAP
+from phcad.data.constants import OE_DATASET_MAP
 from phcad.train.losses import LOSS_MAP
 from phcad.test.calibration_curves import calibration_curve
 

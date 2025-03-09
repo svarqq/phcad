@@ -11,7 +11,7 @@ import torch
 from torchvision.datasets import VisionDataset
 import torchvision.transforms.v2.functional as F
 
-from phcad.data_handling.constants import (
+from phcad.data.constants import (
     MVTEC_DL_URL,
     MVTEC_LABEL_MAP,
     MPDD_LABEL_MAP,

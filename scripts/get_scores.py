@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from phcad.models.ae_mvtec import AEMvTec
 from phcad.train.constants import CHKPTDIR
-from phcad.data_handling import mvtec_dataset
+from phcad.data import mvtec_dataset
 from phcad.metrics import ssim
 
 

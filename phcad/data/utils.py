@@ -9,15 +9,15 @@ from torch.utils.data import DataLoader, Subset, ConcatDataset
 from torchvision.datasets import CIFAR10, CIFAR100, FashionMNIST
 from torchvision.transforms import v2
 
-from phcad.data_handling.constants import (
+from phcad.data.constants import (
     DATADIR,
     FMNIST_LABEL_MAP,
     CIFAR10_LABEL_MAP,
     MVTEC_LABEL_MAP,
     MPDD_LABEL_MAP,
 )
-from phcad.data_handling.imagenet import ImageNet21KMinus1K
-from phcad.data_handling.mvtec_mpdd import MVTecMPDD
+from phcad.data.imagenet import ImageNet21KMinus1K
+from phcad.data.mvtec_mpdd import MVTecMPDD
 
 
 MVTec = partial(MVTecMPDD, "mvtec")

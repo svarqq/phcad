@@ -2,7 +2,7 @@ import json
 import numpy as np
 from collections import defaultdict
 
-from phcad.data_handling.constants import DS_TO_LABELS_MAP
+from phcad.data.constants import DS_TO_LABELS_MAP
 from phcad.experiments.constants import EXPDIR, NUMSEEDS
 
 

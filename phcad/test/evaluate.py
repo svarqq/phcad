@@ -13,7 +13,7 @@ from sklearn.metrics import (
 )
 from anomalib.metrics import AUROC, AUPRO
 
-from phcad.data_handling.transforms import mask_to_class
+from phcad.data.transforms import mask_to_class
 from phcad.test.utils import check_results
 
 logger = logging.getLogger(__name__)

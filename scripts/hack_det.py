@@ -10,10 +10,10 @@ import torch.nn.functional as F
 from sklearn.linear_model import LogisticRegression
 
 from phcad.models import wrn18, ae_mvtec
-from phcad.data_handling.spectral_natural_images import SpectralNaturalImages
-from phcad.data_handling.mvtec_mpdd import MVTecMPDD
-from phcad.data_handling.utils import get_dataset, get_train_cal_splits
-from phcad.data_handling.constants import CIFAR10_LABELS, FMNIST_LABELS
+from phcad.data.spectral_natural_images import SpectralNaturalImages
+from phcad.data.mvtec_mpdd import MVTecMPDD
+from phcad.data.utils import get_dataset, get_train_cal_splits
+from phcad.data.constants import CIFAR10_LABELS, FMNIST_LABELS
 from phcad.train.losses import LOSS_MAP
 from phcad.experiments.constants import EXPDIR
 from phcad.experiments.onevall import run_onevall

@@ -3,7 +3,7 @@ from pathlib import Path
 import argparse
 
 from phcad.train.losses import SEG_LOSS_MAP
-from phcad.data_handling.constants import DS_TO_LABELS_MAP
+from phcad.data.constants import DS_TO_LABELS_MAP
 from constants import SLURMDIR
 
 slurm_subdir = SLURMDIR / "segmentation-curves"

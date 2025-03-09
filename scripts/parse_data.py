@@ -1,7 +1,7 @@
 import __init__  # noqa
 
 from phcad.experiments.results import parse_results, parse_cal_curves
-from phcad.data_handling.constants import DS_TO_LABELS_MAP
+from phcad.data.constants import DS_TO_LABELS_MAP
 from phcad.train.losses import LOSS_MAP, SEG_LOSS_MAP
 
 if __name__ == "__main__":

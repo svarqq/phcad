@@ -9,20 +9,20 @@ from phcad.experiments.constants import EXPDIR
 from phcad.models.constants import SEG_MODEL_MAP
 from phcad.models.fcdd import ReceptiveUpsample
 from phcad.models.layers import PerPixelPlatt, PerPixelBeta
-from phcad.data_handling.utils import (
+from phcad.data.utils import (
     get_dataset,
     get_train_cal_splits,
     mean_std,
     BalancedLoader,
     DATASET_MAP,
 )
-from phcad.data_handling.spectral_natural_images import SpectralNaturalImages
-from phcad.data_handling.transforms import (
+from phcad.data.spectral_natural_images import SpectralNaturalImages
+from phcad.data.transforms import (
     SEG_TEST_TRANSFORM_MAP,
     generic_norm_transform,
     synthetic_mask,
 )
-from phcad.data_handling.constants import OE_DATASET_MAP
+from phcad.data.constants import OE_DATASET_MAP
 from phcad.train.losses import SEG_LOSS_MAP
 from phcad.test.calibration_curves import calibration_curve
 
