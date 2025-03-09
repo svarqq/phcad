@@ -1,13 +1,13 @@
 import copy
 
 import torch
-from torch.utils.data import DataLoader, Subset, ConcatDataset
+from torch.utils.data import Subset, ConcatDataset
 import torch.nn.functional as F
 
 from phcad.utils import dsvdd_center
-from phcad.experiments.constants import EXPROOT
+from phcad.experiments.constants import EXPROOT, NUMSEEDS
 from phcad.models.constants import MODEL_MAP
-from phcad.models.layers import PlattCal, PerPixelPlatt, BetaCal, PerPixelBeta
+from phcad.models.layers import PlattCal, BetaCal
 from phcad.data.utils import (
     get_dataset,
     get_train_cal_splits,
@@ -147,8 +147,8 @@ def get_calibration_curves(
     else:
         oe_cal_type = "oe"
 
-    for seed in range(5):
-        basename = f"{label}-{seed}"
+    for seednum in range(NUMSEEDS):
+        basename = f"{label}-{seednum}"
 
         # Prepare partial train, cal data with partial mean, std norm
         train_data_partial, _ = get_train_cal_splits(

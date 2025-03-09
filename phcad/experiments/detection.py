@@ -3,16 +3,7 @@ import copy
 from torch.utils.data import DataLoader, Subset, ConcatDataset
 import torch.nn.functional as F
 
-from phcad.utils import dsvdd_center
-from phcad.experiments.constants import EXPROOT
-from phcad.models.constants import MODEL_MAP
-from phcad.data.utils import (
-    get_dataset,
-    get_train_cal_splits,
-    mean_std,
-    BalancedLoader,
-    DATASET_MAP,
-)
+from phcad.data.constants import OE_DATASET_MAP, MVTEC_LABELS_NOFLIP
 from phcad.data.spectral_natural_images import SpectralNaturalImages
 from phcad.data.transforms import (
     TRAIN_TRANSFORM_MAP,
@@ -22,7 +13,15 @@ from phcad.data.transforms import (
     label_to_one,
     mask_to_class,
 )
-from phcad.data.constants import OE_DATASET_MAP, MVTEC_LABELS_NOFLIP
+from phcad.data.utils import (
+    get_dataset,
+    get_train_cal_splits,
+    mean_std,
+    BalancedLoader,
+    DATASET_MAP,
+)
+from phcad.experiments.constants import EXPROOT, NUMSEEDS
+from phcad.models.constants import MODEL_MAP
 from phcad.train.losses import LOSS_MAP
 from phcad.train.train import train
 from phcad.train.calibrate import apply_posthoc_calibration
@@ -32,6 +31,7 @@ from phcad.test.evaluate import (
     evaluate_thresholding_perturbation,
 )
 from phcad.train.utils import get_optim_sched_epochs
+from phcad.utils import dsvdd_center
 
 
 def run_detection_experiment(
@@ -174,8 +174,8 @@ def run_detection_experiment(
     else:
         oe_cal_type = "oe"
 
-    for seed in range(5):
-        basename = f"{label}-{seed}"
+    for seednum in range(NUMSEEDS):
+        basename = f"{label}-{seednum}"
 
         # Prepare partial train, cal data with partial mean, std norm
         train_data_partial, cal_data_indist = get_train_cal_splits(

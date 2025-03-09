@@ -3,7 +3,7 @@ import copy
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
-from phcad.experiments.constants import EXPROOT
+from phcad.experiments.constants import EXPROOT, NUMSEEDS
 from phcad.models.constants import SEG_MODEL_MAP
 from phcad.models.fcdd import ReceptiveUpsample
 from phcad.data.utils import (
@@ -143,8 +143,8 @@ def run_localization_experiment(
     else:
         oe_cal_type = "oe"
 
-    for seed in range(5):
-        basename = f"{label}-{seed}"
+    for seednum in range(NUMSEEDS):
+        basename = f"{label}-{seednum}"
 
         # Prepare partial train, cal data with partial mean, std norm
         train_data_partial, cal_data_indist = get_train_cal_splits(

@@ -4,8 +4,7 @@ import torch
 import torch.nn.functional as F
 from torchvision.transforms import v2
 
-from phcad.utils import dsvdd_center
-from phcad.experiments.constants import EXPROOT
+from phcad.experiments.constants import EXPROOT, NUMSEEDS
 from phcad.models.constants import SEG_MODEL_MAP
 from phcad.models.fcdd import ReceptiveUpsample
 from phcad.models.layers import PerPixelPlatt, PerPixelBeta
@@ -117,7 +116,7 @@ def get_seg_cal_curves(
     else:
         oe_cal_type = "oe"
 
-    for seed in range(5):
+    for seed in range(NUMSEEDS):
         basename = f"{label}-{seed}"
 
         # Prepare partial train, cal data with partial mean, std norm
