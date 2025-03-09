@@ -147,7 +147,7 @@ def apply_posthoc_calibration_seg(
     cal_module.train()
     for epoch in range(last_epoch + 1, epochs + 1):
         n_samps, total_loss = 0, 0
-        for n_batch, data in enumerate(dataloader):
+        for _, data in enumerate(dataloader):
             imgs, target_masks = data
             with torch.device(device), torch.no_grad():
                 imgs = imgs.to(device)

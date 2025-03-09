@@ -63,7 +63,7 @@ def train(
     net.train()
     for epoch in range(last_epoch + 1, epochs + 1):
         n_samps, total_loss = 0, 0
-        for n_batch, data in enumerate(dloader):
+        for _, data in enumerate(dloader):
             inputs, labels = data
             with torch.device(device):
                 inputs = inputs.to(device)

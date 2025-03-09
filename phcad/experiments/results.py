@@ -1,10 +1,7 @@
 import json
 import numpy as np
-from scipy import interpolate
-from matplotlib import pyplot as plt
 from collections import defaultdict
 
-from phcad.data_handling.utils import get_dataset
 from phcad.data_handling.constants import DS_TO_LABELS_MAP
 from phcad.experiments.constants import EXPDIR, NUMSEEDS
 
@@ -39,11 +36,9 @@ def parse_results(dataset_name, loss_name, experiment_type="onevall"):
         # num_test_samples = len(get_dataset(dataset_name, "test", label))
         for datamode in ["full", "partial"]:
             infixes = []
-            names = []
             if datamode == "full":
                 base = f"{datamode}-{cal_train}"
                 infixes += [base, f"{base}-perturb"]
-                names += [datamode]
             elif datamode == "partial":
                 cal_list = (
                     det_cal_methods if experiment_type == "onevall" else cal_methods
@@ -52,7 +47,6 @@ def parse_results(dataset_name, loss_name, experiment_type="onevall"):
                     for cal_d in cal_data:
                         base = f"{datamode}-{cal_train}-{cal_method}-{cal_d}"
                         infixes += [base, f"{base}-perturb"]
-                        names += [f"{datamode}-{cal_method}"]
 
             for infix in infixes:
                 aurocs = np.empty(NUMSEEDS)
@@ -157,11 +151,9 @@ def parse_cal_curves(dataset_name, loss_name, experiment_type="onevall"):
         curve_map["seeds"][label]["mce"] = {}
         for datamode in ["full", "partial"]:
             infixes = []
-            names = []
             if datamode == "full":
                 base = f"{datamode}-{cal_train}"
                 infixes += [base]
-                names += [datamode]
             elif datamode == "partial":
                 cal_list = (
                     det_cal_methods if experiment_type == "onevall" else cal_methods
@@ -170,7 +162,6 @@ def parse_cal_curves(dataset_name, loss_name, experiment_type="onevall"):
                     for cal_d in cal_data:
                         base = f"{datamode}-{cal_train}-{cal_method}-{cal_d}"
                         infixes += [base]
-                        names += [f"{datamode}-{cal_method}"]
 
             for infix in infixes:
                 if infix not in curve_map["all"]["curve"]:

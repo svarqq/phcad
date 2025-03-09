@@ -118,7 +118,7 @@ class WideResNet18(nn.Module):
         if self.clf:
             self.calibration_head.reset_parameters()
         self.clf = True
-        self.phcad = True
+        self.phcal = True
 
 
 class BasicBlock(nn.Module):

@@ -9,7 +9,6 @@ import tqdm
 import numpy as np
 import torch
 from torchvision.datasets import VisionDataset
-from torchvision.io import read_image, ImageReadMode
 import torchvision.transforms.v2.functional as F
 
 from phcad.data_handling.constants import (
@@ -35,7 +34,6 @@ class MVTecMPDD(VisionDataset):
         transform=None,
         target_transform=None,
         test_indist_only=False,
-        **dummy_args,
     ):
         if dataset_name != "mvtec" and dataset_name != "mpdd":
             raise ValueError(
@@ -52,7 +50,7 @@ class MVTecMPDD(VisionDataset):
         else:
             extract_path = root / "MPDD"
             label_map = MPDD_LABEL_MAP
-        meta = generate_meta(self.root, extract_path)
+        meta = self.generate_meta(self.root, extract_path)
         self.class_to_idx = meta["class_to_idx"]
 
         if train:
@@ -82,11 +80,6 @@ class MVTecMPDD(VisionDataset):
                     [label_data] * MVTecMPDD.train_extension_factor
                 )
             )
-            self.class_list = list(
-                itertools.chain.from_iterable(
-                    [label_classes] * MVTecMPDD.train_extension_factor
-                )
-            )
         else:
             all_data = [meta["test_data"][i] for i in label_idcs]
             if test_indist_only:
@@ -97,7 +90,6 @@ class MVTecMPDD(VisionDataset):
                 self.data = indist_data
             else:
                 self.data = all_data
-            self.class_list = [orig_classes[i] for i in label_idcs]
 
     def __len__(self):
         return len(self.data)
@@ -128,59 +120,58 @@ class MVTecMPDD(VisionDataset):
 
         return img, mask
 
+    @classmethod
+    def generate_meta(cls, root, extract_dir):
+        metapath = root / cls.meta_fname
+        if metapath.exists():
+            return torch.load(metapath, weights_only=False)
 
-def generate_meta(root, extract_dir):
-    metapath = root / "meta.pt"
-    if metapath.exists():
-        return torch.load(metapath, weights_only=False)
-
-    def is_image(fname):
         img_exts = [".jpeg", ".jpg", ".png"]
-        return any(
+        is_image = lambda fname: any(
             map(
                 lambda ext: fname.endswith(ext),
-                img_exts + list(map(lambda ext: ext.upper(), img_exts)),
+                img_exts + [e.upper() for e in img_exts],
             )
         )
 
-    train_data, test_data = [], []
-    train_classes, test_classes = [], []
-    class_to_idx, next_idx = {}, 0
-    for dir, _, fnames in extract_dir.walk():
-        if not fnames or not all(map(lambda fname: is_image(fname), fnames)):
-            continue
+        train_data, test_data = [], []
+        train_classes, test_classes = [], []
+        class_to_idx, next_idx = {}, 0
+        for dir, _, fnames in extract_dir.walk():
+            if not fnames or not all(map(lambda fname: is_image(fname), fnames)):
+                continue
 
-        label, subset, defect_type = dir.parts[-3:]
-        if label not in class_to_idx:
-            class_to_idx[label] = next_idx
-            next_idx += 1
+            label, subset, defect_type = dir.parts[-3:]
+            if label not in class_to_idx:
+                class_to_idx[label] = next_idx
+                next_idx += 1
 
-        if subset == "train":
-            train_classes += [class_to_idx[label]] * len(fnames)
-            train_data += [(dir / fname, None) for fname in fnames]
+            if subset == "train":
+                train_classes += [class_to_idx[label]] * len(fnames)
+                train_data += [(dir / fname, None) for fname in fnames]
 
-        elif subset == "test":
-            test_classes += [class_to_idx[label]] * len(fnames)
-            mask_path = Path(
-                "/" + "/".join(dir.parts[1:-2]) + "/ground_truth/" + defect_type
-            )
-            if mask_path.exists():
-                test_data += [
-                    (dir / fname, mask_path / fname.replace(".png", "_mask.png"))
-                    for fname in fnames
-                ]
-            else:
-                test_data += [(dir / fname, None) for fname in fnames]
+            elif subset == "test":
+                test_classes += [class_to_idx[label]] * len(fnames)
+                mask_path = Path(
+                    "/" + "/".join(dir.parts[1:-2]) + "/ground_truth/" + defect_type
+                )
+                if mask_path.exists():
+                    test_data += [
+                        (dir / fname, mask_path / fname.replace(".png", "_mask.png"))
+                        for fname in fnames
+                    ]
+                else:
+                    test_data += [(dir / fname, None) for fname in fnames]
 
-    meta = {
-        "train_data": train_data,
-        "test_data": test_data,
-        "train_classes": train_classes,
-        "test_classes": test_classes,
-        "class_to_idx": class_to_idx,
-    }
-    torch.save(meta, metapath)
-    return meta
+        meta = {
+            "train_data": train_data,
+            "test_data": test_data,
+            "train_classes": train_classes,
+            "test_classes": test_classes,
+            "class_to_idx": class_to_idx,
+        }
+        torch.save(meta, metapath)
+        return meta
 
 
 def download_and_extract_mvtec(download_directory):
