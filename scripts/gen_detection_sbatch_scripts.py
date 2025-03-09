@@ -47,8 +47,8 @@ def generate_sbatch(
 #SBATCH -N 1
 #SBATCH -n 5
 #SBATCH --cpus-per-task=1
-#SBATCH --gres gpu:V100:1
-#SBATCH --partition gpuidle
+#SBATCH --gres=gpu:v100:1
+#SBATCH --partition=gpuidle
 """
     )
     infix = """module load anaconda3/latest
