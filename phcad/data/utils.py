@@ -112,7 +112,7 @@ def get_dataset(
         raise ValueError('Parameter split must be one of ["train", "test"]')
     if complement and split == "train":
         raise ValueError(
-            "Cannot set parameter complement to True for train data, it is designed for onevall testing"
+            "Cannot set parameter complement to True for train data, it is designed for detection testing"
         )
 
     dataset_class, label_map, dataset_type = DATASET_MAP[dataset_name]
@@ -127,7 +127,7 @@ def get_dataset(
     if split == "test" and dataset_type == "segmentation" and complement:
         error_msg = (
             "Defensively disallowing complement of test segmentation data from "
-            "being fetched, as it's designed for onevall testing"
+            "being fetched, as it's designed for detection testing"
         )
         raise ValueError(error_msg)
 

@@ -4,7 +4,7 @@ import argparse
 
 from phcad.data.constants import DS_TO_LABELS_MAP
 from phcad.train.losses import LOSS_MAP
-from phcad.experiments.onevall import run_onevall
+from phcad.experiments.detection import run_detection_experiment
 
 parser = argparse.ArgumentParser()
 parser.add_argument("dataset_name")
@@ -34,4 +34,4 @@ if __name__ == "__main__":
         "spectral_oe_cal": args.spectral_cal,
     }
     logging.info(f"Starting detection experiment for label {label} of {dname}")
-    run_onevall(**xargs)
+    run_detection_experiment(**xargs)

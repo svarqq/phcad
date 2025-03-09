@@ -15,8 +15,8 @@ from phcad.data.mvtec_mpdd import MVTecMPDD
 from phcad.data.utils import get_dataset, get_train_cal_splits
 from phcad.data.constants import CIFAR10_LABELS, FMNIST_LABELS
 from phcad.train.losses import LOSS_MAP
-from phcad.experiments.constants import EXPDIR
-from phcad.experiments.onevall import run_onevall
+from phcad.experiments.constants import EXPROOT
+from phcad.experiments.detection import run_detection_experiment
 from phcad.models.layers import PlattCal
 
 
@@ -25,12 +25,12 @@ if __name__ == "__main__":
     spec_oe_cal = False
     for label in FMNIST_LABELS:
         for loss in LOSS_MAP:
-            run_onevall("fmnist", label, loss, spec_oe_train, False)
-            run_onevall("fmnist", label, loss, spec_oe_train, True)
+            run_detection_experiment("fmnist", label, loss, spec_oe_train, False)
+            run_detection_experiment("fmnist", label, loss, spec_oe_train, True)
     for label in CIFAR10_LABELS:
         for loss in LOSS_MAP:
-            run_onevall("cifar10", label, loss, spec_oe_train, False)
-            run_onevall("cifar10", label, loss, spec_oe_train, True)
+            run_detection_experiment("cifar10", label, loss, spec_oe_train, False)
+            run_detection_experiment("cifar10", label, loss, spec_oe_train, True)
 
     # wrn_open = wrn18.WideResNet18()
     # wrn_clf = wrn18.WideResNet18(clf=True)

@@ -3,7 +3,7 @@ import numpy as np
 from collections import defaultdict
 
 from phcad.data.constants import DS_TO_LABELS_MAP
-from phcad.experiments.constants import EXPDIR, NUMSEEDS
+from phcad.experiments.constants import EXPROOT, NUMSEEDS
 
 
 num_interpolation_points = 101
@@ -12,8 +12,8 @@ det_cal_methods = cal_methods + ["phtrain"]
 cal_data = ["oe", "spectral"]
 
 
-def parse_results(dataset_name, loss_name, experiment_type="onevall"):
-    results_dir = EXPDIR / experiment_type / dataset_name / loss_name / "results"
+def parse_results(dataset_name, loss_name, experiment_type="detection"):
+    results_dir = EXPROOT / experiment_type / dataset_name / loss_name / "results"
     labels = DS_TO_LABELS_MAP[dataset_name]
     base_loss_unsupervised = loss_name == "dsvdd" or loss_name == "ssim"
     cal_train = "none" if base_loss_unsupervised else "oe"
@@ -41,7 +41,7 @@ def parse_results(dataset_name, loss_name, experiment_type="onevall"):
                 infixes += [base, f"{base}-perturb"]
             elif datamode == "partial":
                 cal_list = (
-                    det_cal_methods if experiment_type == "onevall" else cal_methods
+                    det_cal_methods if experiment_type == "detection" else cal_methods
                 )
                 for cal_method in cal_list:
                     for cal_d in cal_data:
@@ -65,7 +65,7 @@ def parse_results(dataset_name, loss_name, experiment_type="onevall"):
                     )
 
                     aurocs[seed] = auroc
-                    if experiment_type == "onevall":
+                    if experiment_type == "detection":
                         fpr = np.linspace(0, 1, num_interpolation_points)
                         tpr = np.interp(fpr, roc[0], roc[1])
                         rocs[seed, 0, :] += fpr
@@ -117,17 +117,17 @@ def parse_results(dataset_name, loss_name, experiment_type="onevall"):
             aupro_map["pro"][infix]["y"] = (
                 np.stack(aupro_map["pro"][infix]["y"]).mean(0).tolist()
             )
-    with open(EXPDIR / experiment_type / dataset_name / f"{loss_name}.json", "w") as f:
+    with open(EXPROOT / experiment_type / dataset_name / f"{loss_name}.json", "w") as f:
         f.write(json.dumps(auroc_map, indent=2))
     if experiment_type == "segmentation":
         with open(
-            EXPDIR / experiment_type / dataset_name / f"{loss_name}-pro.json", "w"
+            EXPROOT / experiment_type / dataset_name / f"{loss_name}-pro.json", "w"
         ) as f:
             f.write(json.dumps(aupro_map, indent=2))
 
 
-def parse_cal_curves(dataset_name, loss_name, experiment_type="onevall"):
-    results_dir = EXPDIR / experiment_type / dataset_name / loss_name / "cal_curves"
+def parse_cal_curves(dataset_name, loss_name, experiment_type="detection"):
+    results_dir = EXPROOT / experiment_type / dataset_name / loss_name / "cal_curves"
     labels = DS_TO_LABELS_MAP[dataset_name]
     base_loss_unsupervised = loss_name == "dsvdd" or loss_name == "ssim"
     cal_train = "none" if base_loss_unsupervised else "oe"
@@ -156,7 +156,7 @@ def parse_cal_curves(dataset_name, loss_name, experiment_type="onevall"):
                 infixes += [base]
             elif datamode == "partial":
                 cal_list = (
-                    det_cal_methods if experiment_type == "onevall" else cal_methods
+                    det_cal_methods if experiment_type == "detection" else cal_methods
                 )
                 for cal_method in cal_list:
                     for cal_d in cal_data:
@@ -241,6 +241,6 @@ def parse_cal_curves(dataset_name, loss_name, experiment_type="onevall"):
 
             inf_curve_map[key] = mean_curve_vals.tolist()
     with open(
-        EXPDIR / experiment_type / dataset_name / f"{loss_name}-cal.json", "w"
+        EXPROOT / experiment_type / dataset_name / f"{loss_name}-cal.json", "w"
     ) as f:
         f.write(json.dumps(curve_map, indent=2))

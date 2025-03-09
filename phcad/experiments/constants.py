@@ -1,4 +1,4 @@
 from phcad.constants import SAVEROOT
 
-EXPDIR = SAVEROOT / "experiments"
+EXPROOT = SAVEROOT / "experiments"
 NUMSEEDS = 5

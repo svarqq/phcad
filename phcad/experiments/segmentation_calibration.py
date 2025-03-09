@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torchvision.transforms import v2
 
 from phcad.utils import dsvdd_center
-from phcad.experiments.constants import EXPDIR
+from phcad.experiments.constants import EXPROOT
 from phcad.models.constants import SEG_MODEL_MAP
 from phcad.models.fcdd import ReceptiveUpsample
 from phcad.models.layers import PerPixelPlatt, PerPixelBeta
@@ -52,7 +52,7 @@ def get_seg_cal_curves(
         base_loss = base_loss(receptive_upsample)
 
     # Setup save directories
-    exp_dir = EXPDIR / "segmentation" / dataset_name / loss_name
+    exp_dir = EXPROOT / "segmentation" / dataset_name / loss_name
     model_dir = exp_dir / "checkpoints"
     results_dir = exp_dir / "cal_curves"
     train_cal_splits_dir = exp_dir / "train-cal-splits"

@@ -19,7 +19,7 @@ from phcad.data.transforms import (
     get_default_test_transform,
     get_default_train_transform,
 )
-from phcad.experiments.constants import EXPDIR
+from phcad.experiments.constants import EXPROOT
 from phcad.experiments.segmentation import run_segmentation_experiment
 from phcad.models.layers import PlattCal
 

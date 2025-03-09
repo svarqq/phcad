@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader, Subset, ConcatDataset
 import torch.nn.functional as F
 
 from phcad.utils import dsvdd_center
-from phcad.experiments.constants import EXPDIR
+from phcad.experiments.constants import EXPROOT
 from phcad.models.constants import MODEL_MAP
 from phcad.data.utils import (
     get_dataset,
@@ -34,7 +34,7 @@ from phcad.test.evaluate import (
 from phcad.train.utils import get_optim_sched_epochs
 
 
-def run_onevall(
+def run_detection_experiment(
     dataset_name,
     label,
     loss_name,
@@ -70,7 +70,7 @@ def run_onevall(
             anomaly_score = anomaly_score(win_size=11)
 
     # Setup save directories
-    exp_dir = EXPDIR / "onevall" / dataset_name / loss_name
+    exp_dir = EXPROOT / "detection" / dataset_name / loss_name
     model_dir = exp_dir / "checkpoints"
     results_dir = exp_dir / "results"
     train_cal_splits_dir = exp_dir / "train-cal-splits"
@@ -140,7 +140,7 @@ def run_onevall(
             train_loader_full = BalancedLoader(train_full, oe_data_full)
 
     if dataset_type == "classification":
-        # onevall
+        # detection
         test_data_in = get_dataset(dataset_name, "test", label)
         test_data_in.dataset.transform = test_transform_full
         test_data_in.dataset.target_transform = label_to_zero

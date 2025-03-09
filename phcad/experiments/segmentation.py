@@ -3,7 +3,7 @@ import copy
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
-from phcad.experiments.constants import EXPDIR
+from phcad.experiments.constants import EXPROOT
 from phcad.models.constants import SEG_MODEL_MAP
 from phcad.models.fcdd import ReceptiveUpsample
 from phcad.data.utils import (
@@ -62,7 +62,7 @@ def run_segmentation_experiment(
         anomaly_score = anomaly_score(receptive_upsample)
 
     # Setup save directories
-    exp_dir = EXPDIR / "segmentation" / dataset_name / loss_name
+    exp_dir = EXPROOT / "segmentation" / dataset_name / loss_name
     model_dir = exp_dir / "checkpoints"
     results_dir = exp_dir / "results"
     train_cal_splits_dir = exp_dir / "train-cal-splits"

@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, Subset, ConcatDataset
 import torch.nn.functional as F
 
 from phcad.utils import dsvdd_center
-from phcad.experiments.constants import EXPDIR
+from phcad.experiments.constants import EXPROOT
 from phcad.models.constants import MODEL_MAP
 from phcad.models.layers import PlattCal, PerPixelPlatt, BetaCal, PerPixelBeta
 from phcad.data.utils import (
@@ -57,7 +57,7 @@ def get_calibration_curves(
             base_loss = base_loss(win_size=11)
 
     # Setup save directories
-    exp_dir = EXPDIR / "onevall" / dataset_name / loss_name
+    exp_dir = EXPROOT / "detection" / dataset_name / loss_name
     model_dir = exp_dir / "checkpoints"
     results_dir = exp_dir / "cal_curves"
     train_cal_splits_dir = exp_dir / "train-cal-splits"
@@ -89,7 +89,7 @@ def get_calibration_curves(
     )
 
     if dataset_type == "classification":
-        # onevall
+        # detection
         indist_test_data = get_dataset(dataset_name, "test", label)
         indist_test_data.dataset.target_transform = label_to_zero
     elif dataset_type == "segmentation":

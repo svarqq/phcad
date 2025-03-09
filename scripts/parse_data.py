@@ -9,4 +9,4 @@ if __name__ == "__main__":
         if ds == "imagenet30":  # or ds == "cifar10" or ds == "fmnist":
             continue
         for loss in LOSS_MAP.keys():
-            parse_cal_curves(ds, loss, "onevall")
+            parse_cal_curves(ds, loss, "detection")

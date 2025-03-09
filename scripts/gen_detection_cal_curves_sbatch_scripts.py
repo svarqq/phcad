@@ -88,7 +88,7 @@ conda activate ml
         )
     dynamic_sbatch_args += "\n"
 
-    onevall_script_path = Path(f"{__file__}/../get_calibration_curves.py").resolve()
+    detection_script_path = Path(f"{__file__}/../get_calibration_curves.py").resolve()
     cmd_args = f"{dataset_name} {loss_name}"
     if test_one_label:
         cmd_args += " 0"
@@ -98,7 +98,7 @@ conda activate ml
         cmd_args += " --spectral-train"
     if spectral_oe_cal:
         cmd_args += " --spectral-cal"
-    dynamic_cmd_line = f"python {onevall_script_path} {cmd_args}\n"
+    dynamic_cmd_line = f"python {detection_script_path} {cmd_args}\n"
 
     sbatch_script = prefix + dynamic_sbatch_args + infix + dynamic_cmd_line + postfix
     postfix = "test-one" if test_one_label else "all"
