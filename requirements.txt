@@ -1,0 +1,13 @@
+anomalib	# does not install all dependencies
+ffcount
+kornia		# anomalib dep
+lightning	# anomalib dep
+matplotlib	# anomalib dep
+opencv-python	# anomalib dep
+requests
+scikit-learn
+scipy	# for torchvision.daatasets.imagenet parse_devkit_archive
+torch
+torchmetrics	# anomlib dep
+torchvision
+tqdm
