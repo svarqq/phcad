@@ -18,7 +18,7 @@ def train(
     savedir=CHKPTDIR,
     device=None,
 ):
-    device = "cuda" if (not device and torch.cuda.is_available) else "cpu"
+    device = "cuda" if (not device and torch.cuda.is_available()) else "cpu"
     net.to(device)
 
     savepath = savedir / f"{savename}.pt"
