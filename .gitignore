@@ -1,0 +1,6 @@
+save/*/**
+!save/*/.gitkeep
+.ipynb*
+*.pyc
+*.swp
+whackyhackys/
